@@ -1,5 +1,7 @@
 # spor
 
+**NB: This is so alpha that I'm petitioning Greece for another letter.**
+
 A system for anchoring metadata in external files to source code.
 
 spor lets you define metadata for elements of your source code. The metadata is
