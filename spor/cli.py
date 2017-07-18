@@ -20,6 +20,11 @@ def list_handler(args):
         print("{} => {}".format(md, md.metadata))
 
 
-dsc.main(
-    program='spor',
-    version='spor v0.0.0')
+def main():
+    dsc.main(
+        program='spor',
+        version='spor v0.0.0')
+
+
+if __name__ == '__main__':
+    main()
