@@ -1,23 +1,25 @@
 import docopt_subcommands as dsc
 import pathlib
-import yaml
+from .store import find_spor_dir, Store
 
 
-def find_metadata(spor_dir, source_file):
-    spor_dir = pathlib.Path(spor_dir)
-    for spor_file in spor_dir.glob('**/*.yml'):
-        with open(spor_file) as f:
-            spec = yaml.load(f.read())
-            if pathlib.Path(spec['filename']) == spor_dir.parent.joinpath(source_file):
-                yield spec['metadata']
+def find_metadata(file_name):
+    file_path = pathlib.Path(file_name).resolve()
+    spor_path = find_spor_dir(file_path)
+    store = Store(spor_path)
+    for md in store:
+        if store.tracked_file(md) == file_path:
+            yield md
 
 
 @dsc.command()
 def list_handler(args):
-    """usage: {program} list <spor-dir> <source-file>
+    """usage: {program} list <source-file>
     """
-    for md in find_metadata(args['<spor-dir>'], args['<source-file>']):
+    for md in find_metadata(args['<source-file>']):
         print(md)
+        print(md.metadata)
+
 
 dsc.main(
     program='spor',
