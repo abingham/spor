@@ -42,7 +42,10 @@ setup(
     ],
     platforms='any',
     include_package_data=True,
-    install_requires=[],
+    install_requires=[
+        'docopt_subcommands',
+        'pyyaml'
+    ],
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax, for
     # example: $ pip install -e .[dev,test]
