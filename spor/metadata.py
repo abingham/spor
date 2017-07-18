@@ -2,10 +2,10 @@ import pathlib
 
 
 class Context:
-    def __init__(self, before, line, after):
-        self._before = tuple(before)
+    def __init__(self, line, before=None, after=None):
+        self._before = tuple(before or ())
         self._line = line
-        self._after = tuple(after)
+        self._after = tuple(after or ())
 
     @property
     def before(self):
@@ -36,7 +36,7 @@ def make_metadata(yml):
     before = yml['context']['before']
     after = yml['context']['after']
     line = yml['context']['line']
-    ctx = Context(before, line, after)
+    ctx = Context(line, before, after)
 
     filename = yml['filename']
     line_number = yml['line_number']
