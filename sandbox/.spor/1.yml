@@ -1,5 +1,5 @@
 filename: source.py
-line: 3
+line_number: 3
 context:
   before:
     - def foo():

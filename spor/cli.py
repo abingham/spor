@@ -17,8 +17,7 @@ def list_handler(args):
     """usage: {program} list <source-file>
     """
     for md in find_metadata(args['<source-file>']):
-        print(md)
-        print(md.metadata)
+        print("{} => {}".format(md, md.metadata))
 
 
 dsc.main(
