@@ -20,7 +20,7 @@ class Context:
         return self._after
 
 
-class Metadata:
+class Anchor:
     def __init__(self, filename, line_number, context, metadata):
         self.filename = pathlib.Path(filename)
         self.line_number = line_number
@@ -32,7 +32,7 @@ class Metadata:
             self.filename, self.line_number)
 
 
-def make_metadata(yml):
+def make_anchor(yml):
     before = yml['context']['before']
     after = yml['context']['after']
     line = yml['context']['line']
@@ -42,4 +42,4 @@ def make_metadata(yml):
     line_number = yml['line_number']
     metadata = yml['metadata']
 
-    return Metadata(filename, line_number, ctx, metadata)
+    return Anchor(filename, line_number, ctx, metadata)

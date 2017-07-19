@@ -1,6 +1,6 @@
 import yaml
 
-from .metadata import make_metadata
+from .anchor import make_anchor
 
 
 def find_spor_dir(path):
@@ -25,5 +25,5 @@ class Store:
         for spor_file in self.path.glob('**/*.yml'):
             with open(spor_file) as f:
                 spec = yaml.load(f.read())
-                md = make_metadata(spec)
+                md = make_anchor(spec)
                 yield md
