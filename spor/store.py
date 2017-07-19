@@ -1,29 +1,122 @@
+import itertools
+import pathlib
+import uuid
 import yaml
 
-from .anchor import make_anchor
+from .anchor import Anchor, Context
 
 
-def find_spor_dir(path):
+def find_spor_repo(path, spor_dir='.spor'):
     while True:
-        path = path.parent.resolve()
-        sporpath = path / '.spor'
-        if sporpath.exists() and sporpath.is_dir():
-            return sporpath
+        spor_path = path / spor_dir
+        if spor_path.exists() and spor_path.is_dir():
+            return spor_path
 
         if path == path.root:
-            raise ValueError('No .spor directory found')
+            raise ValueError('No spor repository found')
+
+        path = path.parent.resolve()
+
+
+def _yaml_to_anchor(yml):
+    before = yml['context']['before']
+    after = yml['context']['after']
+    line = yml['context']['line']
+    ctx = Context(line, before, after)
+
+    filename = yml['filename']
+    line_number = yml['line_number']
+    metadata = yml['metadata']
+    cols = tuple(yml['columns']) if yml['columns'] else None
+
+    return Anchor(
+        filename=filename,
+        line_number=line_number,
+        context=ctx,
+        metadata=metadata,
+        columns=cols)
+
+
+def _anchor_to_yaml(anchor):
+    return {
+        'filename': anchor.filename,
+        'line_number': anchor.line_number,
+        'columns': anchor.columns,
+        'context': {
+            'before': list(anchor.context.before),
+            'line': list(anchor.context.line),
+            'after': list(anchor.context.after)
+        },
+        'metadata': yaml.dump(anchor.metadata)
+    }
 
 
 class Store:
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, path, spor_dir='.spor'):
+        self.repo_path = find_spor_repo(pathlib.Path(path))
+
+    @staticmethod
+    def initialize(path, spor_dir='.spor'):
+        path = pathlib.Path(path)
+        spor_path = path / spor_dir
+        if spor_path.exists():
+            raise ValueError(
+                'spor directory already exists: {}'.format(
+                    spor_path))
+        spor_path.mkdir()
 
     def tracked_file(self, metadata):
         return self.path.parent / metadata.filename
+
+    def add(self, metadata, file_name, line_number, columns=None):
+        anchor_id = uuid.uuid4().hex
+        file_path = pathlib.Path(file_name).relative_to(self.repo_path.parent)
+        data_path = '{}.yml'.format(anchor_id)
+        obj = {
+            'id': anchor_id,
+            'filename': file_path,
+            'line_number': line_number,
+            'columns': columns,
+            # 'context': {
+            #     'before': list(anchor.context.before),
+            #     'line': list(anchor.context.line),
+            #     'after': list(anchor.context.after)
+            # },
+            'metadata': metadata
+        }
+
+        with open(data_path, mode='wt') as f:
+            yaml.dump(obj, f)
+
+        return anchor_id
+
+    def find(self, file_name, line_number, columns=None):
+        file_name = str(pathlib.Path(file_name).relative_to(self.repo_path.parent))
+        return (
+            anchor
+            for anchor in self
+            if anchor.filename == file_name
+            if anchor.line_number == line_number
+            # TODO: Match columns
+        )
+
+    def set(self, anchor_id, metadata):
+        file_name = '{}.yml'.format(anchor_id)
+        file_path = self.repo_path / file_name
+        with open(file_path, mode='rt') as f:
+            anchor = yaml.load(f.read())
+        anchor.metadata = metadata
+        with open(file_path, mode='wt') as f:
+            yaml.dump(anchor, f)
+
+    def delete(self, anchor_id):
+        file_name = '{}.yml'.format(anchor_id)
+        file_path = self.repo_path / file_name
+        file_path.unlink()
 
     def __iter__(self):
         for spor_file in self.path.glob('**/*.yml'):
             with open(spor_file) as f:
                 spec = yaml.load(f.read())
-                md = make_anchor(spec)
+                md = _yaml_to_anchor(spec)
                 yield md

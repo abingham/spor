@@ -1,5 +1,6 @@
 filename: source.py
 line_number: 3
+columns:
 context:
   before:
     - def foo():

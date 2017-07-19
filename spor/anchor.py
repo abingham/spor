@@ -21,25 +21,13 @@ class Context:
 
 
 class Anchor:
-    def __init__(self, filename, line_number, context, metadata):
+    def __init__(self, filename, context, metadata, line_number, columns=None):
         self.filename = pathlib.Path(filename)
         self.line_number = line_number
+        self.columns = columns
         self.context = context
         self.metadata = metadata
 
     def __repr__(self):
-        return 'Metadata(filename={}, line_number={})'.format(
-            self.filename, self.line_number)
-
-
-def make_anchor(yml):
-    before = yml['context']['before']
-    after = yml['context']['after']
-    line = yml['context']['line']
-    ctx = Context(line, before, after)
-
-    filename = yml['filename']
-    line_number = yml['line_number']
-    metadata = yml['metadata']
-
-    return Anchor(filename, line_number, ctx, metadata)
+        return 'Metadata(filename={}, line_number={}, columns={})'.format(
+            self.filename, self.line_number, self.columns)
