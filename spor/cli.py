@@ -1,5 +1,11 @@
-import docopt_subcommands as dsc
+import os
 import pathlib
+import subprocess
+import tempfile
+
+import docopt_subcommands as dsc
+import yaml
+
 from .store import find_spor_repo, Store
 
 
@@ -24,9 +30,29 @@ def list_handler(args):
 def add_handler(args):
     """usage: {program} add <source-file> <line-number> [<begin-offset> <end-offset>]
     """
-    file_path = pathlib.Path(file_name).resolve()
+    file_path = pathlib.Path(args['<source-file>']).resolve()
+    line_number = int(args['<line-number>'])
+
     spor_path = find_spor_repo(file_path)
     store = Store(spor_path)
+
+    # TODO: What is a reasonable default for windows? Does this approach even make sense on windows?
+    editor = os.environ.get('EDITOR', 'vim')
+
+    with tempfile.TemporaryDirectory() as dirname:
+        filename = pathlib.Path(dirname) / 'metadata.yml'
+        with filename.open(mode='wt') as handle:
+            handle.write('# yaml metadata')
+        subprocess.call([editor, filename])
+
+        with filename.open(mode='rt') as handle:
+            text = handle.read()
+
+    # TODO: More graceful handling of yaml.parser.ParserError
+    metadata = yaml.load(text)
+
+    # TODO: Add support for begin/end col offset
+    store.add(metadata, file_path, line_number)
 
 
 def main():

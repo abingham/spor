@@ -1,9 +1,8 @@
-import itertools
 import pathlib
 import uuid
 import yaml
 
-from .anchor import Anchor, Context
+from .anchor import Anchor, Context, make_anchor
 
 
 def find_spor_repo(path, spor_dir='.spor'):
@@ -12,7 +11,7 @@ def find_spor_repo(path, spor_dir='.spor'):
         if spor_path.exists() and spor_path.is_dir():
             return spor_path
 
-        if path == path.root:
+        if path == pathlib.Path(path.root):
             raise ValueError('No spor repository found')
 
         path = path.parent.resolve()
@@ -44,7 +43,7 @@ def _anchor_to_yaml(anchor):
         'columns': anchor.columns,
         'context': {
             'before': list(anchor.context.before),
-            'line': list(anchor.context.line),
+            'line': anchor.context.line,
             'after': list(anchor.context.after)
         },
         'metadata': yaml.dump(anchor.metadata)
@@ -66,27 +65,22 @@ class Store:
         spor_path.mkdir()
 
     def tracked_file(self, metadata):
-        return self.path.parent / metadata.filename
+        return self.repo_path.parent / metadata.filename
 
     def add(self, metadata, file_name, line_number, columns=None):
         anchor_id = uuid.uuid4().hex
         file_path = pathlib.Path(file_name).relative_to(self.repo_path.parent)
-        data_path = '{}.yml'.format(anchor_id)
-        obj = {
-            'id': anchor_id,
-            'filename': file_path,
-            'line_number': line_number,
-            'columns': columns,
-            # 'context': {
-            #     'before': list(anchor.context.before),
-            #     'line': list(anchor.context.line),
-            #     'after': list(anchor.context.after)
-            # },
-            'metadata': metadata
-        }
+        data_path = self.repo_path / '{}.yml'.format(anchor_id)
+
+        anchor = make_anchor(
+            context_size=3,  # TODO: This needs to be configurable
+            filepath=file_path,
+            line_number=line_number,
+            metadata=metadata,
+            columns=columns)
 
         with open(data_path, mode='wt') as f:
-            yaml.dump(obj, f)
+            yaml.dump(_anchor_to_yaml(anchor), f)
 
         return anchor_id
 
@@ -115,8 +109,8 @@ class Store:
         file_path.unlink()
 
     def __iter__(self):
-        for spor_file in self.path.glob('**/*.yml'):
-            with open(spor_file) as f:
-                spec = yaml.load(f.read())
+        for spor_file in self.repo_path.glob('**/*.yml'):
+            with open(spor_file) as handle:
+                spec = yaml.load(handle.read())
                 md = _yaml_to_anchor(spec)
                 yield md
