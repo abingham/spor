@@ -76,7 +76,7 @@ class Store:
                     columns=None):
         context = _make_context(context_size, str(file_path), line_number)
         return Anchor(
-            file_path=file_path.relative_to(self.repo_path.parent),
+            file_path=file_path.resolve().relative_to(self.repo_path.parent),
             context=context,
             metadata=metadata,
             line_number=line_number,

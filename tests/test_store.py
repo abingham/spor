@@ -1,3 +1,5 @@
+import pathlib
+
 import pytest
 
 from spor.store import Store
@@ -33,3 +35,20 @@ def test_create_store_with_no_repo_raises_ValueError(tmpdir_path, excursion):
     with excursion(tmpdir_path):
         with pytest.raises(ValueError):
             Store(tmpdir_path)
+
+
+def test_make_anchor_simple(tmpdir_path, excursion):
+    Store.initialize(tmpdir_path)
+    store = Store(tmpdir_path)
+    with excursion(tmpdir_path):
+        source = pathlib.Path('source.py')
+        with source.open(mode='wt') as handle:
+            handle.write('\n'.join('abcde'))
+        anchor = store.make_anchor(2, source, 3, {})
+        assert anchor.file_path == source
+        assert anchor.line_number == 3
+        assert anchor.columns is None
+        assert anchor.metadata == {}
+        assert anchor.context.before == ('a\n', 'b\n')
+        assert anchor.context.line == 'c\n'
+        assert anchor.context.after == ('d\n', 'e\n')
