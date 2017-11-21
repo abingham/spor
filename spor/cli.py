@@ -21,6 +21,8 @@ def find_anchor(file_name):
 @dsc.command()
 def list_handler(args):
     """usage: {program} list <source-file>
+
+    List the anchors for a file.
     """
     for anchor in find_anchor(args['<source-file>']):
         print("{} => {}".format(anchor, anchor.metadata))
@@ -29,6 +31,8 @@ def list_handler(args):
 @dsc.command()
 def add_handler(args):
     """usage: {program} add <source-file> <line-number> [<begin-offset> <end-offset>]
+
+    Add a new anchor for a file.
     """
     file_path = pathlib.Path(args['<source-file>']).resolve()
     line_number = int(args['<line-number>'])
