@@ -1,20 +1,6 @@
-import contextlib
-import os
-import pathlib
-
 import pytest
 
 from spor.store import find_spor_repo, Store
-
-
-@contextlib.contextmanager
-def excursion(path):
-    old = pathlib.Path.cwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(old)
 
 
 def test_find_spor_repo_root_dir(tmpdir_path):
@@ -29,13 +15,13 @@ def test_find_spor_repo_nested_dir(tmpdir_path):
     assert find_spor_repo(nested) == tmpdir_path / '.spor'
 
 
-def test_find_spor_repo_root_dir_from_cwd(tmpdir_path):
+def test_find_spor_repo_root_dir_from_cwd(tmpdir_path, excursion):
     Store.initialize(tmpdir_path)
     with excursion(tmpdir_path):
         assert find_spor_repo() == tmpdir_path / '.spor'
 
 
-def test_find_spor_repo_nested_dir_from_cwd(tmpdir_path):
+def test_find_spor_repo_nested_dir_from_cwd(tmpdir_path, excursion):
     nested = tmpdir_path / 'nested'
     nested.mkdir()
     Store.initialize(tmpdir_path)
@@ -43,7 +29,7 @@ def test_find_spor_repo_nested_dir_from_cwd(tmpdir_path):
         assert find_spor_repo() == tmpdir_path / '.spor'
 
 
-def test_find_spor_repo_with_no_repo_raises_ValueError(tmpdir_path):
+def test_find_spor_repo_with_no_repo_raises_ValueError(tmpdir_path, excursion):
     with excursion(tmpdir_path):
         with pytest.raises(ValueError):
             find_spor_repo(tmpdir_path)
