@@ -7,14 +7,13 @@ import tempfile
 import docopt_subcommands as dsc
 import yaml
 
-from .store import find_spor_repo, Store
+from .store import Store
 from .validation import validate
 
 
 def find_anchor(file_name):
     file_path = pathlib.Path(file_name).resolve()
-    spor_path = find_spor_repo(file_path)
-    store = Store(spor_path)
+    store = Store(file_path)
     for anchor in store:
         if store.tracked_file(anchor) == file_path:
             yield anchor
@@ -39,8 +38,7 @@ def add_handler(args):
     file_path = pathlib.Path(args['<source-file>']).resolve()
     line_number = int(args['<line-number>'])
 
-    spor_path = find_spor_repo(file_path)
-    store = Store(spor_path)
+    store = Store(file_path)
 
     # TODO: What is a reasonable default for windows? Does this approach even make sense on windows?
     editor = os.environ.get('EDITOR', 'vim')
@@ -68,8 +66,7 @@ def validate_handler(args):
     Validate the anchors in the current repository.
     """
     path = pathlib.Path(args['<path>']) if args['<path>'] else None
-    spor_path = find_spor_repo(path)
-    store = Store(spor_path)
+    store = Store(path)
     for (file_name, diff) in validate(store):
         print('= MISMATCH =')
         print(file_name)

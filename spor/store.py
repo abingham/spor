@@ -8,7 +8,7 @@ import yaml
 from .anchor import Anchor, Context
 
 
-def find_spor_repo(path=None, spor_dir='.spor'):
+def _find_spor_repo(path, spor_dir):
     path = path or pathlib.Path(os.getcwd())
 
     while True:
@@ -57,7 +57,7 @@ def _make_context(context_size, file_name, line_number):
 
 class Store:
     def __init__(self, path, spor_dir='.spor'):
-        self.repo_path = find_spor_repo(pathlib.Path(path))
+        self.repo_path = _find_spor_repo(pathlib.Path(path), spor_dir)
 
     @staticmethod
     def initialize(path, spor_dir='.spor'):
