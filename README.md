@@ -9,7 +9,7 @@ kept in a separate file from your source code, meaning that you don't need to
 clutter your source file with extra information encoded into comments. To
 accomplish this while dealing with the fact that source code changes over time,
 spor uses various "anchoring" techniques to keep the metadata in sync with the
-source code (or let you know when they become irrevocably out of sync).
+source code (or let you know when they become unmanageably out of sync).
 
 ## Motivation
 
