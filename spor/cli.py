@@ -1,12 +1,14 @@
 import os
 import pathlib
 import subprocess
+import sys
 import tempfile
 
 import docopt_subcommands as dsc
 import yaml
 
 from .store import find_spor_repo, Store
+from .validation import validate
 
 
 def find_anchor(file_name):
@@ -57,6 +59,21 @@ def add_handler(args):
 
     # TODO: Add support for begin/end col offset
     store.add(metadata, file_path, line_number)
+
+
+@dsc.command()
+def validate_handler(args):
+    """usage: {program} validate [<path>]
+
+    Validate the anchors in the current repository.
+    """
+    path = pathlib.Path(args['<path>']) if args['<path>'] else None
+    spor_path = find_spor_repo(path)
+    store = Store(spor_path)
+    for (file_name, diff) in validate(store):
+        print('= MISMATCH =')
+        print(file_name)
+        sys.stdout.writelines(diff)
 
 
 def main():
