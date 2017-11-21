@@ -4,6 +4,8 @@ import pathlib
 
 import pytest
 
+from spor.store import Store
+
 
 @pytest.fixture
 def tmpdir_path(tmpdir):
@@ -22,3 +24,11 @@ def excursion():
         finally:
             os.chdir(old)
     return f
+
+
+@pytest.fixture
+def store(tmpdir_path, excursion):
+    Store.initialize(tmpdir_path)
+    store = Store(tmpdir_path)
+    with excursion(tmpdir_path):
+        yield store
