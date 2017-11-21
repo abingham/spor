@@ -13,17 +13,17 @@ def find_anchor(file_name):
     file_path = pathlib.Path(file_name).resolve()
     spor_path = find_spor_repo(file_path)
     store = Store(spor_path)
-    for md in store:
-        if store.tracked_file(md) == file_path:
-            yield md
+    for anchor in store:
+        if store.tracked_file(anchor) == file_path:
+            yield anchor
 
 
 @dsc.command()
 def list_handler(args):
     """usage: {program} list <source-file>
     """
-    for md in find_anchor(args['<source-file>']):
-        print("{} => {}".format(md, md.metadata))
+    for anchor in find_anchor(args['<source-file>']):
+        print("{} => {}".format(anchor, anchor.metadata))
 
 
 @dsc.command()

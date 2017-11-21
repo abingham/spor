@@ -1,6 +1,8 @@
 import linecache
 import pathlib
 
+import yaml
+
 
 class Context:
     def __init__(self, line, before=None, after=None):
@@ -21,6 +23,25 @@ class Context:
         return self._after
 
 
+def context_representer(dumper, context):
+    return dumper.represent_mapping(
+        '!spor_context',
+        {
+            'before': list(context.before),
+            'after': list(context.after),
+            'line': context.line
+        })
+
+
+def context_constructor(loader, node):
+    value = loader.construct_mapping(node)
+    return Context(**value)
+
+
+yaml.add_representer(Context, context_representer)
+yaml.add_constructor('!spor_context', context_constructor)
+
+
 class Anchor:
     def __init__(self, filename, context, metadata, line_number, columns=None):
         self.filename = pathlib.Path(filename)
@@ -32,6 +53,27 @@ class Anchor:
     def __repr__(self):
         return 'Metadata(filename={}, line_number={}, columns={})'.format(
             self.filename, self.line_number, self.columns)
+
+
+def anchor_representer(dumper, anchor):
+    return dumper.represent_mapping(
+        '!spor_anchor',
+        {
+            'filename': str(anchor.filename),
+            'line_number': anchor.line_number,
+            'columns': anchor.columns,
+            'context': anchor.context,
+            'metadata': anchor.metadata,
+        })
+
+
+def anchor_constructor(loader, node):
+    value = loader.construct_mapping(node)
+    return Anchor(**value)
+
+
+yaml.add_representer(Anchor, anchor_representer)
+yaml.add_constructor('!spor_anchor', anchor_constructor)
 
 
 def _read_line(filepath, line_number):

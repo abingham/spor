@@ -2,7 +2,7 @@ import pathlib
 import uuid
 import yaml
 
-from .anchor import Anchor, Context, make_anchor
+from .anchor import make_anchor
 
 
 def find_spor_repo(path, spor_dir='.spor'):
@@ -15,39 +15,6 @@ def find_spor_repo(path, spor_dir='.spor'):
             raise ValueError('No spor repository found')
 
         path = path.parent.resolve()
-
-
-def _yaml_to_anchor(yml):
-    before = yml['context']['before']
-    after = yml['context']['after']
-    line = yml['context']['line']
-    ctx = Context(line, before, after)
-
-    filename = yml['filename']
-    line_number = yml['line_number']
-    metadata = yml['metadata']
-    cols = tuple(yml['columns']) if yml['columns'] else None
-
-    return Anchor(
-        filename=filename,
-        line_number=line_number,
-        context=ctx,
-        metadata=metadata,
-        columns=cols)
-
-
-def _anchor_to_yaml(anchor):
-    return {
-        'filename': anchor.filename,
-        'line_number': anchor.line_number,
-        'columns': anchor.columns,
-        'context': {
-            'before': list(anchor.context.before),
-            'line': anchor.context.line,
-            'after': list(anchor.context.after)
-        },
-        'metadata': yaml.dump(anchor.metadata)
-    }
 
 
 class Store:
@@ -64,8 +31,8 @@ class Store:
                     spor_path))
         spor_path.mkdir()
 
-    def tracked_file(self, metadata):
-        return self.repo_path.parent / metadata.filename
+    def tracked_file(self, anchor):
+        return self.repo_path.parent / anchor.filename
 
     def add(self, metadata, file_name, line_number, columns=None):
         anchor_id = uuid.uuid4().hex
@@ -80,7 +47,7 @@ class Store:
             columns=columns)
 
         with open(data_path, mode='wt') as f:
-            yaml.dump(_anchor_to_yaml(anchor), f)
+            yaml.dump(anchor, f)
 
         return anchor_id
 
@@ -111,6 +78,4 @@ class Store:
     def __iter__(self):
         for spor_file in self.repo_path.glob('**/*.yml'):
             with open(spor_file) as handle:
-                spec = yaml.load(handle.read())
-                md = _yaml_to_anchor(spec)
-                yield md
+                yield yaml.load(handle.read())
