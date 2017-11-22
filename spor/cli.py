@@ -1,9 +1,11 @@
 import os
 import pathlib
+import signal
 import subprocess
 import sys
 import tempfile
 
+import docopt
 import docopt_subcommands as dsc
 import yaml
 
@@ -27,6 +29,8 @@ def list_handler(args):
     """
     for anchor in find_anchor(args['<source-file>']):
         print("{} => {}".format(anchor, anchor.metadata))
+
+    return sys.EX_OK
 
 
 @dsc.command()
@@ -58,6 +62,8 @@ def add_handler(args):
     # TODO: Add support for begin/end col offset
     store.add(metadata, file_path, line_number)
 
+    return sys.EX_OK
+
 
 @dsc.command()
 def validate_handler(args):
@@ -72,12 +78,30 @@ def validate_handler(args):
         print(file_name)
         sys.stdout.writelines(diff)
 
+    return sys.EX_OK
+
+
+_SIGNAL_EXIT_CODE_BASE = 128
+
 
 def main():
-    dsc.main(
-        program='spor',
-        version='spor v0.0.0')
+    signal.signal(signal.SIGINT,
+                  lambda *args: sys.exit(_SIGNAL_EXIT_CODE_BASE + signal.SIGINT))
+
+    try:
+        return dsc.main(
+            program='spor',
+            version='spor v0.0.0')
+    except docopt.DocoptExit as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_USAGE
+    except FileNotFoundError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_NOINPUT
+    except PermissionError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_NOPERM
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
