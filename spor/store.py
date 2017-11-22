@@ -11,8 +11,6 @@ from .anchor import Anchor, Context
 def _find_spor_repo(path, spor_dir):
     path = pathlib.Path(os.getcwd() if path is None else path)
 
-    path = path or pathlib.Path(os.getcwd())
-
     while True:
         spor_path = path / spor_dir
         if spor_path.exists() and spor_path.is_dir():
@@ -100,31 +98,41 @@ class Store:
 
         return anchor_id
 
-    def find(self, file_path, line_number, columns=None):
-        file_path = file_path.relative_to(self.repo_path.parent)
-        return (
-            anchor
-            for anchor in self
-            if anchor.file_path == file_path
-            if anchor.line_number == line_number
-            # TODO: Match columns
-        )
-
-    def set(self, anchor_id, metadata):
+    def _anchor_path(self, anchor_id):
         file_name = '{}.yml'.format(anchor_id)
         file_path = self.repo_path / file_name
-        with open(file_path, mode='rt') as f:
-            anchor = yaml.load(f.read())
+        return file_path
+
+    def __getitem__(self, anchor_id):
+        file_path = self._anchor_path(anchor_id)
+
+        try:
+            with open(file_path, mode='rt') as handle:
+                return yaml.load(handle.read())
+        except OSError:
+            raise KeyError(
+                'No anchor with id {}'.format(anchor_id))
+
+    def __setitem__(self, anchor_id, metadata):
+        anchor = self.get(anchor_id)
         anchor.metadata = metadata
-        with open(file_path, mode='wt') as f:
+        with open(self._anchor_path(anchor_id), mode='wt') as f:
             yaml.dump(anchor, f)
 
-    def delete(self, anchor_id):
-        file_name = '{}.yml'.format(anchor_id)
-        file_path = self.repo_path / file_name
-        file_path.unlink()
+    def __delitem__(self, anchor_id):
+        try:
+            self._anchor_path(anchor_id).unlink()
+        except OSError:
+            raise KeyError(
+                'No anchor with id {}'.format(anchor_id))
 
     def __iter__(self):
         for spor_file in self.repo_path.glob('**/*.yml'):
-            with open(spor_file) as handle:
-                yield yaml.load(handle.read())
+            anchor_id = str(spor_file.name())[:-4]
+
+            try:
+                anchor = self[anchor_id]
+            except KeyError:
+                assert False, 'Trying to load from missing file or something'
+
+            yield (anchor_id, anchor)

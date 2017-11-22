@@ -36,7 +36,7 @@ def test_create_store_with_no_repo_raises_ValueError(tmpdir_path, excursion):
             Store(tmpdir_path)
 
 
-def test_make_anchor_simple(store):
+def test_make_anchor(store):
     source = pathlib.Path('source.py')
     with source.open(mode='wt') as handle:
         handle.write('\n'.join('abcde'))
