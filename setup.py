@@ -1,6 +1,5 @@
 import io
 import os
-import re
 from setuptools import setup, find_packages
 
 
@@ -27,7 +26,7 @@ def read_version():
     return (local_vars['__version__'], local_vars['__version_info__'])
 
 
-long_description = read('README.md', mode='rt')
+long_description = read(local_file('README.md'), mode='rt')
 
 setup(
     name='spor',
@@ -52,13 +51,8 @@ setup(
         'docopt_subcommands',
         'pyyaml'
     ],
-    # List additional groups of dependencies here (e.g. development
-    # dependencies). You can install these using the following syntax, for
-    # example: $ pip install -e .[dev,test]
     extras_require={
-        # 'dev': ['check-manifest', 'wheel'],
-        # 'doc': ['sphinx', 'cartouche'],
-        'test': ['hypothesis', 'pytest'],
+        'test': ['hypothesis', 'pytest', 'tox'],
     },
     entry_points={
         'console_scripts': [
