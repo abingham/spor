@@ -4,28 +4,34 @@ import re
 from setuptools import setup, find_packages
 
 
-def read(*names, **kwargs):
+def local_file(*name):
+    return os.path.join(
+        os.path.dirname(__file__),
+        *name)
+
+
+def read(name, **kwargs):
     with io.open(
-        os.path.join(os.path.dirname(__file__), *names),
+        name,
         encoding=kwargs.get("encoding", "utf8")
-    ) as fp:
-        return fp.read()
+    ) as handle:
+        return handle.read()
 
 
-def find_version(*file_paths):
-    version_file = read(*file_paths)
-    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
-                              version_file, re.M)
-    if version_match:
-        return version_match.group(1)
-    raise RuntimeError("Unable to find version string.")
+def read_version():
+    "Read the `(version-string, version-info)` from `spor/version.py`."
+    version_file = local_file('spor', 'version.py')
+    local_vars = {}
+    with open(version_file) as handle:
+        exec(handle.read(), {}, local_vars)  # pylint: disable=exec-used
+    return (local_vars['__version__'], local_vars['__version_info__'])
 
 
 long_description = read('README.md', mode='rt')
 
 setup(
     name='spor',
-    version=find_version('spor/version.py'),
+    version=read_version()[0],
     packages=find_packages(exclude=['contrib', 'docs', 'test*']),
 
     author='Sixty North AS',
