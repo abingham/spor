@@ -18,11 +18,11 @@ def excursion():
     @contextlib.contextmanager
     def f(path):
         old = pathlib.Path.cwd()
-        os.chdir(path)
+        os.chdir(str(path))
         try:
             yield
         finally:
-            os.chdir(old)
+            os.chdir(str(old))
     return f
 
 
