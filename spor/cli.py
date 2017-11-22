@@ -22,6 +22,21 @@ def find_anchor(file_name):
 
 
 @dsc.command()
+def init_handler(args):
+    """usage: {program} init
+
+    Initialize a new spor repository in the current directory.
+    """
+    try:
+        Store.initialize(pathlib.Path.cwd())
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_DATAERR
+
+    return os.EX_OK
+
+
+@dsc.command()
 def list_handler(args):
     """usage: {program} list <source-file>
 
@@ -30,7 +45,7 @@ def list_handler(args):
     for anchor in find_anchor(args['<source-file>']):
         print("{} => {}".format(anchor, anchor.metadata))
 
-    return sys.EX_OK
+    return os.EX_OK
 
 
 @dsc.command()
@@ -40,9 +55,18 @@ def add_handler(args):
     Add a new anchor for a file.
     """
     file_path = pathlib.Path(args['<source-file>']).resolve()
-    line_number = int(args['<line-number>'])
 
-    store = Store(file_path)
+    try:
+        line_number = int(args['<line-number>'])
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_DATAERR
+
+    try:
+        store = Store(file_path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_DATAERR
 
     # TODO: What is a reasonable default for windows? Does this approach even make sense on windows?
     editor = os.environ.get('EDITOR', 'vim')
@@ -62,23 +86,36 @@ def add_handler(args):
     # TODO: Add support for begin/end col offset
     store.add(metadata, file_path, line_number)
 
-    return sys.EX_OK
+    return os.EX_OK
 
 
 @dsc.command()
 def validate_handler(args):
-    """usage: {program} validate [<path>]
+    """usage: {program} validate [--print] [<path>]
 
     Validate the anchors in the current repository.
     """
     path = pathlib.Path(args['<path>']) if args['<path>'] else None
-    store = Store(path)
-    for (file_name, diff) in validate(store):
-        print('= MISMATCH =')
-        print(file_name)
-        sys.stdout.writelines(diff)
+    do_print = args['--print']
 
-    return sys.EX_OK
+    try:
+        store = Store(path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_DATAERR
+
+    invalid = False
+    for (file_name, diff) in validate(store):
+        invalid = True
+        if do_print:
+            print('= MISMATCH =')
+            print(file_name)
+            sys.stdout.writelines(diff)
+
+    if invalid:
+        return 1
+    else:
+        return os.EX_OK
 
 
 _SIGNAL_EXIT_CODE_BASE = 128
