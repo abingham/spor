@@ -69,5 +69,5 @@ need to pay attention to:
    :target: https://www.python.org/
 .. |Build Status| image:: https://travis-ci.org/abingham/spor.png?branch=master
    :target: https://travis-ci.org/abingham/spor
-.. |tox| replace:: `tox`
-   :target: https://tox.readthedocs.io/en/latest/
+.. |tox| replace:: ``tox``
+.. _tox: https://tox.readthedocs.io/en/latest/
