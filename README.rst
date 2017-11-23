@@ -1,9 +1,8 @@
 |Python version| |Build Status|
 
-spor
-====
-
-**NB: This is so alpha that I'm petitioning Greece for another letter.**
+======
+ spor
+======
 
 A system for anchoring metadata in external files to source code.
 
@@ -16,7 +15,7 @@ techniques to keep the metadata in sync with the source code (or let you
 know when they become unmanageably out of sync).
 
 Motivation
-----------
+==========
 
 My main motivation for this tool comes from my work on the mutation
 testing tool `Cosmic Ray <https://github.com/sixty-north/cosmic-ray>`__.
@@ -27,7 +26,7 @@ code, I thought it would be cleaner and neater to let them do so with a
 separate metadata file.
 
 Features
---------
+========
 
 spor needs support for the following functionality:
 
@@ -46,8 +45,18 @@ going to try to keep it simple and explicit at first.
 Ideally spor will work on any programming language (and, really, any
 text document), though its initial target will be Python source code.
 
+Tests
+=====
+
+To run the tests, first install the test dependencies and then use |tox|:
+
+.. code-block::
+
+  pip install -e .[test]
+  tox
+
 Notes
------
+=====
 
 The field of "anchoring" is not new, and there's some existing work we
 need to pay attention to:
@@ -60,3 +69,5 @@ need to pay attention to:
    :target: https://www.python.org/
 .. |Build Status| image:: https://travis-ci.org/abingham/spor.png?branch=master
    :target: https://travis-ci.org/abingham/spor
+.. |tox| `tox`
+   :target: https://tox.readthedocs.io/en/latest/
