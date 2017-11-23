@@ -48,7 +48,7 @@ text document), though its initial target will be Python source code.
 Tests
 =====
 
-To run the tests, first install the test dependencies and then use |tox|:
+To run the tests, first install the test dependencies and then use |tox|_:
 
 .. code-block::
 
