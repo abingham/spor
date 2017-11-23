@@ -1,5 +1,7 @@
 import difflib
 
+from .anchor import make_anchor
+
 
 def _context_diff(file_name, c1, c2):
     c1_text = list(c1.before) + [c1.line] + list(c1.after)
@@ -11,16 +13,16 @@ def _context_diff(file_name, c1, c2):
         tofile='{} [current]'.format(file_name))
 
 
-def validate(store):
-    for anchor in store:
-        file_path = store.tracked_file(anchor)
+def validate(repo):
+    for (anchor_id, anchor) in repo:
         context_size = max(len(anchor.context.before), len(anchor.context.after))
-        new_anchor = store.make_anchor(
+        new_anchor = make_anchor(
             context_size=context_size,
-            file_path=file_path,
+            file_path=anchor.file_path,
             line_number=anchor.line_number,
             metadata=anchor.metadata,
-            columns=anchor.columns)
+            columns=anchor.columns,
+            root=repo.root)
 
         assert anchor.file_path == new_anchor.file_path
         assert anchor.line_number == new_anchor.line_number
@@ -29,7 +31,7 @@ def validate(store):
 
         diff = tuple(
             _context_diff(
-                str(anchor.file_path),
+                str(repo.root / anchor.file_path),
                 anchor.context,
                 new_anchor.context))
 

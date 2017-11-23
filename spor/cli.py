@@ -9,15 +9,15 @@ import docopt
 import docopt_subcommands as dsc
 import yaml
 
-from .store import Store
+from .repo import Repository
 from .validation import validate
 
 
 def find_anchor(file_name):
     file_path = pathlib.Path(file_name).resolve()
-    store = Store(file_path)
-    for anchor in store:
-        if store.tracked_file(anchor) == file_path:
+    repo = Repository(file_path)
+    for (anchor_id, anchor) in repo:
+        if repo.root / anchor.file_path == file_path:
             yield anchor
 
 
@@ -28,7 +28,7 @@ def init_handler(args):
     Initialize a new spor repository in the current directory.
     """
     try:
-        Store.initialize(pathlib.Path.cwd())
+        Repository.initialize(pathlib.Path.cwd())
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
@@ -63,7 +63,7 @@ def add_handler(args):
         return os.EX_DATAERR
 
     try:
-        store = Store(file_path)
+        repo = Repository(file_path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
@@ -84,7 +84,7 @@ def add_handler(args):
     metadata = yaml.load(text)
 
     # TODO: Add support for begin/end col offset
-    store.add(metadata, file_path, line_number)
+    repo.add(metadata, file_path, line_number)
 
     return os.EX_OK
 
@@ -99,13 +99,13 @@ def validate_handler(args):
     do_print = args['--print']
 
     try:
-        store = Store(path)
+        repo = Repository(path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
 
     invalid = False
-    for (file_name, diff) in validate(store):
+    for (file_name, diff) in validate(repo):
         invalid = True
         if do_print:
             print('= MISMATCH =')

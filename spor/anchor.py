@@ -1,4 +1,6 @@
+import linecache
 import pathlib
+
 import yaml
 
 
@@ -36,6 +38,53 @@ class Anchor:
     def __repr__(self):
         return 'Anchor(file_path={}, line_number={}, columns={})'.format(
             self.file_path, self.line_number, self.columns)
+
+
+def _read_line(file_name, line_number):
+    """Read the specified line from a file, returning `None` if there is no such
+    line.
+
+    Newlines will be stripped from the lines.
+    """
+    line = linecache.getline(file_name, line_number)
+    return None if line == '' else line
+
+
+def _make_context(context_size, file_name, line_number):
+    line = _read_line(file_name, line_number)
+
+    if line is None:
+        raise IndexError('No line {} in {}'.format(line_number, file_name))
+
+    before = filter(
+        lambda l: l is not None,
+        (_read_line(file_name, n)
+         for n in range(line_number - context_size,
+                        line_number)))
+    after = filter(
+        lambda l: l is not None,
+        (_read_line(file_name, n)
+         for n in range(line_number + 1,
+                        line_number + 1 + context_size)))
+
+    return Context(
+        line=line,
+        before=before,
+        after=after)
+
+
+def make_anchor(context_size, file_path, line_number, metadata,
+                columns=None, root=None):
+    root = pathlib.Path.cwd() if root is None else root
+    full_path = root / file_path
+
+    context = _make_context(context_size, str(full_path), line_number)
+    return Anchor(
+        file_path=file_path.resolve().relative_to(root),
+        context=context,
+        metadata=metadata,
+        line_number=line_number,
+        columns=columns)
 
 
 def _context_representer(dumper, context):

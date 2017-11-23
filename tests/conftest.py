@@ -4,7 +4,7 @@ import pathlib
 
 import pytest
 
-from spor.store import Store
+from spor.repo import Repository
 
 
 @pytest.fixture
@@ -27,8 +27,8 @@ def excursion():
 
 
 @pytest.fixture
-def store(tmpdir_path, excursion):
-    Store.initialize(tmpdir_path)
-    store = Store(tmpdir_path)
+def repo(tmpdir_path, excursion):
+    Repository.initialize(tmpdir_path)
+    repo = Repository(tmpdir_path)
     with excursion(tmpdir_path):
-        yield store
+        yield repo
