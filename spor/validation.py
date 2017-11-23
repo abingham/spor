@@ -14,7 +14,7 @@ def _context_diff(file_name, c1, c2):
 
 
 def validate(repo):
-    for (anchor_id, anchor) in repo:
+    for (anchor_id, anchor) in repo.items():
         context_size = max(len(anchor.context.before), len(anchor.context.after))
         new_anchor = make_anchor(
             context_size=context_size,

@@ -16,7 +16,7 @@ from .validation import validate
 def find_anchor(file_name):
     file_path = pathlib.Path(file_name).resolve()
     repo = Repository(file_path)
-    for (anchor_id, anchor) in repo:
+    for (anchor_id, anchor) in repo.items():
         if repo.root / anchor.file_path == file_path:
             yield anchor
 

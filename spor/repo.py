@@ -100,8 +100,10 @@ class Repository:
 
     def __iter__(self):
         for spor_file in self._spor_dir.glob('**/*.yml'):
-            anchor_id = str(spor_file.name)[:-4]
+            yield str(spor_file.name)[:-4]
 
+    def items(self):
+        for anchor_id in self:
             try:
                 anchor = self[anchor_id]
             except KeyError:
