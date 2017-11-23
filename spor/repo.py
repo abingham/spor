@@ -70,7 +70,7 @@ class Repository:
 
         anchor_id = uuid.uuid4().hex
         anchor_path = self._anchor_path(anchor_id)
-        with open(anchor_path, mode='wt') as f:
+        with anchor_path.open(mode='wt') as f:
             yaml.dump(anchor, f)
 
         return anchor_id
@@ -79,7 +79,7 @@ class Repository:
         file_path = self._anchor_path(anchor_id)
 
         try:
-            with open(file_path, mode='rt') as handle:
+            with file_path.open(mode='rt') as handle:
                 return yaml.load(handle.read())
         except OSError:
             raise KeyError(
@@ -88,7 +88,7 @@ class Repository:
     def update(self, anchor_id, metadata):
         anchor = self[anchor_id]
         anchor.metadata = metadata
-        with open(self._anchor_path(anchor_id), mode='wt') as f:
+        with self._anchor_path(anchor_id).open(mode='wt') as f:
             yaml.dump(anchor, f)
 
     def __delitem__(self, anchor_id):
