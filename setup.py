@@ -26,7 +26,7 @@ def read_version():
     return (local_vars['__version__'], local_vars['__version_info__'])
 
 
-long_description = read(local_file('README.md'), mode='rt')
+long_description = read(local_file('README.rst'), mode='rt')
 
 setup(
     name='spor',
