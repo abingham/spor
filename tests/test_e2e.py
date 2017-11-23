@@ -23,7 +23,7 @@ def initialized_repo(tmpdir_path):
     subprocess.check_call(['spor', 'init'])
 
     proc = subprocess.Popen(['spor', 'add', 'source.py', '3'],
-                            encoding='utf-8',
+                            universal_newlines=True,
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
     output, output_err = proc.communicate(input='{meta: data}')
@@ -39,7 +39,7 @@ def test_init_creates_repo(tmpdir_path):
 
 def test_add_anchor_creates_anchor(initialized_repo):
     output = subprocess.check_output(['spor', 'list', 'source.py'],
-                                     encoding='utf-8')
+                                     universal_newlines=True)
     assert output == "Anchor(file_path=source.py, line_number=3, columns=None) "\
                      "=> {'meta': 'data'}\n"
 
