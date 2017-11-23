@@ -61,9 +61,7 @@ Notes
 The field of "anchoring" is not new, and there's some existing work we
 need to pay attention to:
 
-- `"Metadata Anchoring for Source Code: Robust Location Descriptor Definition,
-   Building and Interpreting"
-   <https://www.researchgate.net/profile/Maria\_Bielikova/publication/259892218\_Metadata\_Anchoring\_for\_Source\_Code\_Robust\_Location\_Descriptor\_Definition\_Building\_and\_Interpreting/links/560478cb08aeb5718ff00039.pdf>`_
+- Bielikova, Maria. `"Metadata Anchoring for Source Code: Robust Location Descriptor Definition, Building and Interpreting" <https://www.researchgate.net/profile/Maria\_Bielikova/publication/259892218\_Metadata\_Anchoring\_for\_Source\_Code\_Robust\_Location\_Descriptor\_Definition\_Building\_and\_Interpreting/links/560478cb08aeb5718ff00039.pdf>`__
 
 .. |Python version| image:: https://img.shields.io/badge/Python_version-3.4+-blue.svg
    :target: https://www.python.org/
