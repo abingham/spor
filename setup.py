@@ -52,7 +52,7 @@ setup(
         'pyyaml'
     ],
     extras_require={
-        'test': ['hypothesis', 'pytest', 'tox'],
+        'test': ['hypothesis', 'pytest', 'radish-bdd', 'tox'],
     },
     entry_points={
         'console_scripts': [
