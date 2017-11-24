@@ -1,4 +1,11 @@
 """Implementation of the Smith-Waterman algorithm.
+
+Given two sequences of elements, a way to score similarity between any two
+elements, and a function defining the penalty for gaps in a match, this can
+tell you how the two sequences align. That is, it find the best "match" between
+the two sequences. This has applications in genomics (e.g. finding how well two
+sequences of bases match) and, in our case, in determining where an anchor
+matches modified source code.
 """
 
 import enum
@@ -32,16 +39,18 @@ def tracebacks(traceback_matrix, idx):
         yield tuple()
         return
 
+    row, col = idx
+
     if directions & Direction.UP.value:
-        for tb in tracebacks(traceback_matrix, (idx[0] - 1, idx[1])):
+        for tb in tracebacks(traceback_matrix, (row - 1, col)):
             yield itertools.chain(tb, ((idx, Direction.UP),))
 
     if directions & Direction.LEFT.value:
-        for tb in tracebacks(traceback_matrix, (idx[0], idx[1] - 1)):
+        for tb in tracebacks(traceback_matrix, (row, col - 1)):
             yield itertools.chain(tb, ((idx, Direction.LEFT),))
 
     if directions & Direction.DIAG.value:
-        for tb in tracebacks(traceback_matrix, (idx[0] - 1, idx[1] - 1)):
+        for tb in tracebacks(traceback_matrix, (row - 1, col - 1)):
             yield itertools.chain(tb, ((idx, Direction.DIAG),))
 
 
@@ -83,6 +92,17 @@ def build_score_matrix(a, b, score_func, gap_penalty):
 
 
 def _traceback_to_alignment(tb, a, b):
+    """Convert a traceback (i.e. as returned by `tracebacks()`) into an alignment
+    (i.e. as returned by `align`).
+
+    Arguments:
+      tb: A traceback.
+      a: the sequence defining the rows in the traceback matrix.
+      b: the sequence defining the columns in the traceback matrix.
+
+    Returns: An iterable of (index, index) tupless where ether (but not both)
+      tuples can be `None`.
+    """
     # We subtract 1 from the indices here because we're translating from the
     # alignment matrix space (which has one extra row and column) to the space
     # of the input sequences.
