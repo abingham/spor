@@ -25,7 +25,37 @@ class Direction(enum.Enum):
     LEFT = 0x04
 
 
-def tracebacks(traceback_matrix, idx):
+def _tracebacks(score_matrix, traceback_matrix, idx):
+    """Implementation of traceeback.
+
+    This version can produce empty tracebacks, which we generally don't want
+    users seeing. So the higher level `tracebacks` filters those out.
+    """
+    score = score_matrix[idx]
+    if score == 0:
+        yield ()
+        return
+
+    directions = traceback_matrix[idx]
+
+    assert directions != Direction.NONE, 'Tracebacks with direction NONE should have value 0!'
+
+    row, col = idx
+
+    if directions & Direction.UP.value:
+        for tb in _tracebacks(score_matrix, traceback_matrix, (row - 1, col)):
+            yield itertools.chain(tb, ((idx, Direction.UP),))
+
+    if directions & Direction.LEFT.value:
+        for tb in _tracebacks(score_matrix, traceback_matrix, (row, col - 1)):
+            yield itertools.chain(tb, ((idx, Direction.LEFT),))
+
+    if directions & Direction.DIAG.value:
+        for tb in _tracebacks(score_matrix, traceback_matrix, (row - 1, col - 1)):
+            yield itertools.chain(tb, ((idx, Direction.DIAG),))
+
+
+def tracebacks(score_matrix, traceback_matrix, idx):
     """Calculate the tracebacks for `traceback_matrix` starting at index `idx`.
 
     Returns: An iterable of tracebacks where each traceback is sequence of
@@ -33,25 +63,10 @@ def tracebacks(traceback_matrix, idx):
       `traceback_matrix`. `direction` indicates the direction into which the
       traceback "entered" the index.
     """
-    directions = traceback_matrix[idx]
-
-    if directions == Direction.NONE.value:
-        yield tuple()
-        return
-
-    row, col = idx
-
-    if directions & Direction.UP.value:
-        for tb in tracebacks(traceback_matrix, (row - 1, col)):
-            yield itertools.chain(tb, ((idx, Direction.UP),))
-
-    if directions & Direction.LEFT.value:
-        for tb in tracebacks(traceback_matrix, (row, col - 1)):
-            yield itertools.chain(tb, ((idx, Direction.LEFT),))
-
-    if directions & Direction.DIAG.value:
-        for tb in tracebacks(traceback_matrix, (row - 1, col - 1)):
-            yield itertools.chain(tb, ((idx, Direction.DIAG),))
+    return filter(lambda tb: tb != (),
+                  _tracebacks(score_matrix,
+                              traceback_matrix,
+                              idx))
 
 
 def build_score_matrix(a, b, score_func, gap_penalty):
@@ -135,5 +150,5 @@ def align(a, b, score_func, gap_penalty):
     """
     score_matrix, tb_matrix = build_score_matrix(a, b, score_func, gap_penalty)
     max_idx, max_val = max(score_matrix.items(), key=lambda item: item[1])
-    for tb in tracebacks(tb_matrix, max_idx):
-        yield _traceback_to_alignment(tb, a, b)
+    for tb in tracebacks(score_matrix, tb_matrix, max_idx):
+        yield tuple(_traceback_to_alignment(tb, a, b))

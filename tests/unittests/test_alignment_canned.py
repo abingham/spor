@@ -32,7 +32,7 @@ def test_canned_tracebacks():
     score_matrix, traceback_matrix = build_score_matrix(
         ROWS, COLS, score, gap_penalty)
     max_idx, max_score = max(score_matrix.items(), key=lambda item: item[1])
-    tbs = list(tracebacks(traceback_matrix, max_idx))
+    tbs = list(tracebacks(score_matrix, traceback_matrix, max_idx))
     assert len(tbs) == 1
 
     expected = (
