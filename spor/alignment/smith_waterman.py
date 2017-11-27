@@ -149,6 +149,10 @@ def align(a, b, score_func, gap_penalty):
 
     """
     score_matrix, tb_matrix = build_score_matrix(a, b, score_func, gap_penalty)
-    max_idx, max_val = max(score_matrix.items(), key=lambda item: item[1])
-    for tb in tracebacks(score_matrix, tb_matrix, max_idx):
-        yield tuple(_traceback_to_alignment(tb, a, b))
+    max_val = max(score_matrix.values())
+    max_indices = (item[0]
+                   for item in score_matrix.items()
+                   if item[1] == max_val)
+    for idx in max_indices:
+        for tb in tracebacks(score_matrix, tb_matrix, idx):
+            yield tuple(_traceback_to_alignment(tb, a, b))
