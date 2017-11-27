@@ -72,7 +72,7 @@ def test_canned_score_matrix():
 
 
 def test_canned_alignment():
-    alignments = align(ROWS, COLS, score, gap_penalty)
+    _, alignments = align(ROWS, COLS, score, gap_penalty)
     alignments = list(alignments)
     assert len(alignments) == 1
     actual = tuple(alignments[0])

@@ -8,6 +8,7 @@ sequences of bases match) and, in our case, in determining where an anchor
 matches modified source code.
 """
 
+from collections import namedtuple
 import enum
 import itertools
 
@@ -141,11 +142,12 @@ def align(a, b, score_func, gap_penalty):
       gap_penalty: A 1-ary callable which calculates the gap penalty for a gap
         of a given size.
 
-    Returns: An iterable of ((index, index), . . .) tuples describing the best
-      (i.e. maximal and equally good) alignments. The first index in each pair
-      is an index into `a` and the second is into `b`. Either (but not both)
-      indices in a pair may be `None` indicating a gap in the corresponding
-      sequence.
+    Returns: A (score, alignments) tuple. `score` is the score that all of the
+      `alignments` received. `alignments` is an iterable of `((index, index), .
+      . .)` tuples describing the best (i.e. maximal and equally good)
+      alignments. The first index in each pair is an index into `a` and the
+      second is into `b`. Either (but not both) indices in a pair may be `None`
+      indicating a gap in the corresponding sequence.
 
     """
     score_matrix, tb_matrix = build_score_matrix(a, b, score_func, gap_penalty)
@@ -153,6 +155,9 @@ def align(a, b, score_func, gap_penalty):
     max_indices = (item[0]
                    for item in score_matrix.items()
                    if item[1] == max_val)
-    for idx in max_indices:
-        for tb in tracebacks(score_matrix, tb_matrix, idx):
-            yield tuple(_traceback_to_alignment(tb, a, b))
+    alignments = (
+        tuple(_traceback_to_alignment(tb, a, b))
+        for idx in max_indices
+        for tb in tracebacks(score_matrix, tb_matrix, idx))
+
+    return (max_val, alignments)

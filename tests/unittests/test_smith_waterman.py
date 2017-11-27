@@ -34,16 +34,16 @@ def lists_with_common_element(draw):
 
 @given(ST.lists(ST.integers(), min_size=1))
 def test_empty_sequences_have_no_alignment(seq):
-    als = align(seq, [], simple_score, simple_gap)
+    _, als = align(seq, [], simple_score, simple_gap)
     assert len(list(als)) == 0
 
-    als = align([], seq, simple_score, simple_gap)
+    _, als = align([], seq, simple_score, simple_gap)
     assert len(list(als)) == 0
 
 
 @given(lists_with_common_element())
 def test_sequences_with_commonality_have_at_least_one_alignment(seqs):
-    als = align(seqs[0], seqs[1], simple_score, simple_gap)
+    _, als = align(seqs[0], seqs[1], simple_score, simple_gap)
     assert len(list(als)) >= 1
 
 
@@ -54,7 +54,7 @@ def test_sequences_without_commonality_have_no_alignment(s1, s2):
     u2 = s1.intersection(s2)
     assert u1.intersection(u2) == set()
 
-    als = align(list(u1), list(u2), simple_score, simple_gap)
+    _, als = align(list(u1), list(u2), simple_score, simple_gap)
     assert (len(list(als))) == 0
 
 
@@ -63,7 +63,7 @@ def test_sequences_without_commonality_have_no_alignment(s1, s2):
 def test_alignments_are_no_longer_than_longest_input(s1, s2):
     max_input_len = max(len(s1), len(s2))
 
-    als = align(s1, s2, simple_score, simple_gap)
+    _, als = align(s1, s2, simple_score, simple_gap)
     for al in als:
         assert len(al) <= max_input_len
 
@@ -73,7 +73,7 @@ def test_alignments_are_no_longer_than_longest_input(s1, s2):
 def test_multiple_alignments(match, size):
     match = list(match)
     larger = match * size
-    als = align(match, larger, simple_score, simple_gap)
+    _, als = align(match, larger, simple_score, simple_gap)
     assert len(list(als)) == size
 
 
@@ -82,8 +82,9 @@ def test_multiple_alignments(match, size):
        ST.lists(ST.integers()))
 def test_alignment_finds_perfect_subset(prefix, match, suffix):
     larger = prefix + match + suffix
+    _, alignments = align(match, larger, simple_score, simple_gap)
     als = [al
-           for al in align(match, larger, simple_score, simple_gap)
+           for al in alignments
            # only perfect alignments
            if len(al) == len(match)
            # only alignments that start after `prefix`
@@ -100,7 +101,8 @@ def test_imperfect_alignment_is_found(chunk):
     separator = max(chunk) + 1
     a = list(chunk) * 2
     b = list(chunk) + [separator] + list(chunk)
-    als = list(align(a, b, simple_score, simple_gap))
+    _, alignments = align(a, b, simple_score, simple_gap)
+    als = list(alignments)
 
     # We should only find one alignment
     assert len(als) == 1
