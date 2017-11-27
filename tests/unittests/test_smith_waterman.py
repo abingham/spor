@@ -66,3 +66,47 @@ def test_alignments_are_no_longer_than_longest_input(s1, s2):
     als = align(s1, s2, simple_score, simple_gap)
     for al in als:
         assert len(al) <= max_input_len
+
+
+@given(ST.sets(ST.integers(), min_size=2, max_size=10),
+       ST.integers(min_value=1, max_value=10))
+def test_multiple_alignments(match, size):
+    match = list(match)
+    larger = match * size
+    als = align(match, larger, simple_score, simple_gap)
+    assert len(list(als)) == size
+
+
+@given(ST.lists(ST.integers()),
+       ST.lists(ST.integers(), min_size=1),
+       ST.lists(ST.integers()))
+def test_alignment_finds_perfect_subset(prefix, match, suffix):
+    larger = prefix + match + suffix
+    als = [al
+           for al in align(match, larger, simple_score, simple_gap)
+           # only perfect alignments
+           if len(al) == len(match)
+           # only alignments that start after `prefix`
+           if al[0][1] == len(prefix)]
+    assert len(als) == 1
+    actual = als[0]
+    expected = tuple(zip(range(len(match)),
+                         range(len(prefix), len(prefix) + len(match))))
+    assert actual == expected
+
+
+@given(ST.sets(ST.integers(), min_size=1))
+def test_imperfect_alignment_is_found(chunk):
+    separator = max(chunk) + 1
+    a = list(chunk) * 2
+    b = list(chunk) + [separator] + list(chunk)
+    als = list(align(a, b, simple_score, simple_gap))
+
+    # We should only find one alignment
+    assert len(als) == 1
+
+    # The alignment for both strings should start at 0
+    assert als[0][0] == (0, 0)
+
+
+# TODO: Test that multiple imperfect alignments will be detected.
