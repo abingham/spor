@@ -34,6 +34,14 @@ def _find_root_dir(path, spor_dir):
         path = path.parent.resolve()
 
 
+def find_anchors(file_name):
+    file_path = pathlib.Path(file_name).resolve()
+    repo = Repository(file_path)
+    for (anchor_id, anchor) in repo.items():
+        if repo.root / anchor.file_path == file_path:
+            yield anchor
+
+
 class Repository:
     def __init__(self, path, spor_dir='.spor'):
         self._root = _find_root_dir(path, spor_dir)

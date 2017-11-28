@@ -9,16 +9,8 @@ import docopt
 import docopt_subcommands as dsc
 import yaml
 
-from .repo import Repository
+from .repo import find_anchors, Repository
 from .validation import validate
-
-
-def find_anchor(file_name):
-    file_path = pathlib.Path(file_name).resolve()
-    repo = Repository(file_path)
-    for (anchor_id, anchor) in repo.items():
-        if repo.root / anchor.file_path == file_path:
-            yield anchor
 
 
 @dsc.command()
@@ -42,7 +34,7 @@ def list_handler(args):
 
     List the anchors for a file.
     """
-    for anchor in find_anchor(args['<source-file>']):
+    for anchor in find_anchors(args['<source-file>']):
         print("{} => {}".format(anchor, anchor.metadata))
 
     return os.EX_OK
