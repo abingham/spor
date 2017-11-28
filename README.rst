@@ -42,16 +42,16 @@ You can anchor metadata to line 4 (the function definition) like this::
 
   $ echo "{meta: data}" | spor add example.py 4
 
+.. pull-quote::
+
+  You don't have to pipe the metadata into the ``add`` command. If you don't,
+  spor will pop up an editor so that you can enter the metadata there.
+
 This will associate the dictionary ``{meta: data}`` with that line. You can see
 this metadata by using the ``list`` command::
 
   $ spor list example.py
   Anchor(file_path=example.py, line_number=4, columns=None) => {'meta': 'data'}
-
-.. pull-quote::
-
-  You don't have to pipe the metadata into the ``add`` command. If you don't,
-  spor will pop up an editor so that you can enter the metadata there.
 
 The metadata can be any valid YAML. spor doesn't look at the data at all, so
 it's entirely up to you to decide what goes there.
