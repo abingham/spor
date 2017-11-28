@@ -48,7 +48,7 @@ this metadata by using the ``list`` command::
   $ spor list example.py
   Anchor(file_path=example.py, line_number=4, columns=None) => {'meta': 'data'}
 
-.. note::
+.. pull-quote::
 
   You don't have to pipe the metadata into the ``add`` command. If you don't,
   spor will pop up an editor so that you can enter the metadata there.
