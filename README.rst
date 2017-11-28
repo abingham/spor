@@ -14,6 +14,48 @@ that source code changes over time, spor uses various "anchoring"
 techniques to keep the metadata in sync with the source code (or let you
 know when they become unmanageably out of sync).
 
+Quickstart
+==========
+
+Before you can use spor to anchor metadata to files, you need to initialize a
+repository with the ``init`` command::
+
+  $ spor init
+
+This is very similar in spirit to ``git init``. It creates a new directory in your
+current directory called ``.spor``, and this is where spor will keep the
+information it needs.
+
+Now you can create anchors. Suppose you've got a file, ``example.py``, like
+this:
+
+.. code-block:: python
+   :linenos:
+
+   # example.py
+
+
+   def func(x):
+       return x * 2
+
+You can anchor metadata to line 4 (the function definition) like this::
+
+  $ echo "{meta: data}" | spor add example.py 4
+
+This will associate the dictionary ``{meta: data}`` with that line. You can see
+this metadata by using the ``list`` command::
+
+  $ spor list example.py
+  Anchor(file_path=example.py, line_number=4, columns=None) => {'meta': 'data'}
+
+.. note::
+
+  You don't have to pipe the metadata into the ``add`` command. If you don't,
+  spor will pop up an editor so that you can enter the metadata there.
+
+The metadata can be any valid YAML. spor doesn't look at the data at all, so
+it's entirely up to you to decide what goes there.
+
 Motivation
 ==========
 
