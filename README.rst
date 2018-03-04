@@ -29,8 +29,7 @@ information it needs.
 Now you can create anchors. Suppose you've got a file, ``example.py``, like
 this:
 
-.. code-block:: python
-   :linenos:
+.. code-block:: python 
 
    # example.py
 
