@@ -38,7 +38,7 @@ setup(
     description='A system for anchoring metadata in external files to source code',
     license='MIT',
     keywords='',
-    url='https://github.com/sixty-north/spor',
+    url='https://github.com/abingham/spor',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Operating System :: OS Independent',
