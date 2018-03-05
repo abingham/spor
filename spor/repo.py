@@ -21,17 +21,16 @@ def _find_root_dir(path, spor_dir):
       ValueError: No repository is found.
 
     """
-    path = pathlib.Path(os.getcwd() if path is None else path)
 
-    while True:
+    start_path = pathlib.Path(os.getcwd() if path is None else path)
+    paths = [start_path] + list(start_path.parents)
+
+    for path in paths:
         data_dir = path / spor_dir
         if data_dir.exists() and data_dir.is_dir():
             return path
 
-        if path == pathlib.Path(path.root):
-            raise ValueError('No spor repository found')
-
-        path = path.parent.resolve()
+    raise ValueError('No spor repository found')
 
 
 def find_anchors(file_name):
