@@ -91,6 +91,23 @@ def _launch_editor(starting_text=''):
 
 
 @dsc.command()
+def update_handler(args):
+    """usage: {program} update [<path>]
+
+    Update out of date anchors in the current repository.
+    """
+    path = pathlib.Path(args['<path>']) if args['<path>'] else None
+
+    try:
+        repo = Repository(path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return os.EX_DATAERR
+
+    from spor.updating import alignments
+    alignments(repo)
+
+@dsc.command()
 def validate_handler(args):
     """usage: {program} validate [--print] [<path>]
 
