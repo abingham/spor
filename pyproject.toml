@@ -1,9 +1,12 @@
 [tool.poetry]
 name = "spor"
-version = "0.1.0"
-description = "Externalized source code metadata"
-authors = ["Austin Bingham <austin.bingham@gmail.com>"]
+version = "1.0.2"
+description = 'A system for anchoring metadata in external files to source code'
+authors = ["Austin Bingham <austin@sixty-north.com>"]
+url = 'https://github.com/abingham/spor'
+repository = 'https://github.com/abingham/spor'
 license = "MIT"
+readme = 'README.rst'
 
 [tool.poetry.dependencies]
 python = ">=3.4"
