@@ -151,13 +151,13 @@ def align(a, b, score_func, gap_penalty):
 
     """
     score_matrix, tb_matrix = build_score_matrix(a, b, score_func, gap_penalty)
-    max_val = max(score_matrix.values())
-    max_indices = (item[0]
-                   for item in score_matrix.items()
-                   if item[1] == max_val)
+    max_score = max(score_matrix.values())
+    max_indices = (index
+                   for index, score in score_matrix.items()
+                   if score == max_score)
     alignments = (
         tuple(_traceback_to_alignment(tb, a, b))
         for idx in max_indices
         for tb in tracebacks(score_matrix, tb_matrix, idx))
 
-    return (max_val, alignments)
+    return (max_score, alignments)
