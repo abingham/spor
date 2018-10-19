@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "spor"
+version = "0.1.0"
+description = "Externalized source code metadata"
+authors = ["Austin Bingham <austin.bingham@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = ">=3.4"
+docopt_subcommands = "^2.3"
+PyYAML = "^3.13"
+
+[tool.poetry.dev-dependencies]
+hypothesis = "^3.79"
+pytest = "^3.9"
+radish-bdd = "^0.8.6"
+tox = "^3.5"
+
+[tool.poetry.scripts]
+spor = "spor.cli:main"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
