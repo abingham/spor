@@ -104,8 +104,11 @@ def update_handler(args):
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
 
-    from spor.updating import alignments
-    alignments(repo)
+    from spor.updating import update
+    for anchor_id, anchor in repo.items():
+        new_anchor = update(anchor)
+        print(new_anchor)
+
 
 @dsc.command()
 def validate_handler(args):
