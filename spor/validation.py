@@ -3,9 +3,16 @@ import difflib
 from .anchor import make_anchor
 
 
+def _split_keep_sep(s, sep):
+    toks = s.split(sep)
+    result = [tok + sep for tok in toks[:-1]]
+    result.append(toks[-1])
+    return result
+
+
 def _context_diff(file_name, c1, c2):
-    c1_text = list(c1.before) + [c1.line] + list(c1.after)
-    c2_text = list(c2.before) + [c2.line] + list(c2.after)
+    c1_text = _split_keep_sep(c1.full, '\n')
+    c2_text = _split_keep_sep(c2.full, '\n')
 
     return difflib.context_diff(
         c1_text, c2_text,
@@ -15,18 +22,17 @@ def _context_diff(file_name, c1, c2):
 
 def validate(repo):
     for (anchor_id, anchor) in repo.items():
-        context_size = max(len(anchor.context.before), len(anchor.context.after))
         new_anchor = make_anchor(
-            context_size=context_size,
             file_path=anchor.file_path,
-            line_number=anchor.line_number,
+            offset=anchor.context.topic.offset,
+            width=len(anchor.context.topic.text),
+            context_width=anchor.context_width,
             metadata=anchor.metadata,
-            columns=anchor.columns,
             root=repo.root)
 
         assert anchor.file_path == new_anchor.file_path
-        assert anchor.line_number == new_anchor.line_number
-        assert anchor.columns == new_anchor.columns
+        assert anchor.context.topic.offset == new_anchor.context.topic.offset
+        assert len(anchor.context.topic.text) == len(new_anchor.context.topic.text)
         assert anchor.metadata == new_anchor.metadata
 
         diff = tuple(
