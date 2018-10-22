@@ -4,87 +4,139 @@ import pathlib
 import yaml
 
 
+class Span:
+    def __init__(self, offset, text):
+        if offset < 0:
+            raise ValueError("Span offset {} is less than 0".format(offset))
+
+        self._offset = offset
+        self._text = text
+
+    @property
+    def offset(self):
+        return self._offset
+
+    @property
+    def text(self):
+        return self._text
+
+    def __repr__(self):
+        return "Span(offset={}, text={})".format(self._offset, self.text)
+
+
 class Context:
-    def __init__(self, line, before=None, after=None):
-        self._before = tuple(before or ())
-        self._line = line
-        self._after = tuple(after or ())
+    def __init__(self, topic, before, after):
+        if not before.offset <= topic.offset:
+            raise ValueError(
+                "Context 'before' must not start after the topic")
+
+        if not after.offset > topic.offset:
+            raise ValueError(
+                "Context 'after' must start after the topic.")
+
+        self._before = before
+        self._topic = topic
+        self._after = after
 
     @property
     def before(self):
         return self._before
 
     @property
-    def line(self):
-        return self._line
+    def topic(self):
+        return self._topic
 
     @property
     def after(self):
         return self._after
 
+    @property
+    def full(self):
+        return self.before.text + self.topic.text + self.after.text
+
     def __repr__(self):
-        return 'Context:\n  line: {}\n  before: {}\n  after: {}'.format(
-            self.line, self.before, self.after)
+        return 'Context:\n  text: {}\n  before: {}\n  after: {}'.format(
+            self.topic, self.before, self.after)
 
 
 class Anchor:
-    def __init__(self, file_path, context, metadata, line_number, columns=None):
+    def __init__(self, file_path, context, context_width, metadata):
         self.file_path = file_path
-        self.line_number = line_number
-        self.columns = columns
         self.context = context
+        self.context_width = context_width
         self.metadata = metadata
 
     def __repr__(self):
-        return 'Anchor(file_path={}, line_number={}, columns={})'.format(
-            self.file_path, self.line_number, self.columns)
+        return 'Anchor(file_path={}, offset={}, length={})'.format(
+            self.file_path,
+            self.context.topic.offset,
+            len(self.context.topic.text))
 
 
-def _read_line(file_name, line_number):
-    """Read the specified line from a file, returning `None` if there is no such
-    line.
+def _make_context(file_path, offset, width, context_width):
+    with file_path.open(mode='rt') as handle:
+        # read topic
+        handle.seek(offset)
+        topic = handle.read(width)
+        if len(topic) < width:
+            raise ValueError(
+                "Unable to read topic of length {} from {} at offset {}".format(
+                    width, file_path, offset))
+        topic_span = Span(offset, topic)
 
-    Newlines will be stripped from the lines.
-    """
-    line = linecache.getline(file_name, line_number)
-    return None if line == '' else line
+        # read before
+        before_offset = max(0, offset - context_width)
+        before_width = offset - before_offset
+        handle.seek(before_offset)
+        before_text = handle.read(before_width)
+        if len(before_text) < before_width:
+            raise ValueError(
+                "Unable to read before-text of length {} from {} at offset {}".format(
+                    before_width, file_path, before_offset))
+        before_span = Span(before_offset, before_text)
 
+        # read after
+        after_offset = offset + width
+        handle.seek(after_offset)
+        after_text = handle.read(context_width)
+        after_span = Span(after_offset, after_text)
 
-def _make_context(context_size, file_name, line_number):
-    line = _read_line(file_name, line_number)
-
-    if line is None:
-        raise IndexError('No line {} in {}'.format(line_number, file_name))
-
-    before = filter(
-        lambda l: l is not None,
-        (_read_line(file_name, n)
-         for n in range(line_number - context_size,
-                        line_number)))
-    after = filter(
-        lambda l: l is not None,
-        (_read_line(file_name, n)
-         for n in range(line_number + 1,
-                        line_number + 1 + context_size)))
-
-    return Context(
-        line=line,
-        before=before,
-        after=after)
+        return Context(topic_span, before_span, after_span)
 
 
-def make_anchor(context_size, file_path, line_number, metadata,
-                columns=None, root=None):
+def make_anchor(file_path,
+                offset,
+                width,
+                context_width,
+                metadata,
+                root=None):
     root = pathlib.Path.cwd() if root is None else root
     full_path = root / file_path
 
-    context = _make_context(context_size, str(full_path), line_number)
+    context = _make_context(full_path, offset, width, context_width)
     return Anchor(
         file_path=file_path.resolve().relative_to(root),
         context=context,
-        metadata=metadata,
-        line_number=line_number,
-        columns=columns)
+        context_width=context_width,
+        metadata=metadata)
+
+
+def _span_representer(dumper, span):
+    return dumper.represent_mapping(
+        '!spor_span',
+        {
+            'offset': span.offset,
+            'text': span.text,
+        })
+
+
+def _span_constructor(loader, node):
+    value = loader.construct_mapping(node)
+    return Span(**value)
+
+
+yaml.add_representer(Span, _span_representer)
+yaml.add_constructor('!spor_span', _span_constructor)
 
 
 def _context_representer(dumper, context):
@@ -93,7 +145,7 @@ def _context_representer(dumper, context):
         {
             'before': context.before,
             'after': context.after,
-            'line': context.line
+            'topic': context.topic
         })
 
 
@@ -111,9 +163,8 @@ def _anchor_representer(dumper, anchor):
         '!spor_anchor',
         {
             'file_path': str(anchor.file_path),
-            'line_number': anchor.line_number,
-            'columns': anchor.columns,
             'context': anchor.context,
+            'context_width': anchor.context_width,
             'metadata': anchor.metadata,
         })
 

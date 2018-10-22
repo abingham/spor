@@ -35,9 +35,9 @@ def check_repo_exists(step):
     assert (step.context.repo_path / ".spor").exists()
 
 
-@when('I create a new anchor for "{filename}" at line {lineno:d}')
-def create_anchor(step, filename, lineno):
-    proc = subprocess.Popen(['spor', 'add', filename, str(lineno)],
+@when('I create a new anchor for "{filename}" at offset {offset:d}')
+def create_anchor(step, filename, offset):
+    proc = subprocess.Popen(['spor', 'add', filename, str(offset), "3", "1"],
                             universal_newlines=True,
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
@@ -45,15 +45,14 @@ def create_anchor(step, filename, lineno):
     assert output_err is None
 
 
-@then('an anchor for "{filename}" at line {lineno:d} appears in the listing')
-def check_anchor_listing(step, filename, lineno):
+@then('an anchor for "{filename}" at offset {offset:d} appears in the listing')
+def check_anchor_listing(step, filename, offset):
     output = subprocess.check_output(['spor', 'list', 'source.py'],
                                      universal_newlines=True)
-    expected = "Anchor(file_path={filename}, line_number={lineno}, "\
-               "columns=None) => {{'meta': 'data'}}\n".format(
-                   filename=filename, lineno=lineno)
+    expected = "Anchor(file_path={filename}, offset={offset}, length=3) => {{'meta': 'data'}}".format(
+        filename=filename, offset=offset)
 
-    assert output == expected, 'expected: {}, actual: {}'.format(expected, output)
+    assert output.strip() == expected.strip(), 'expected: {}, actual: {}'.format(expected, output)
 
 
 @then('the repository is valid')

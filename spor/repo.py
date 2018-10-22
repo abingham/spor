@@ -66,13 +66,13 @@ class Repository:
                     spor_path))
         spor_path.mkdir()
 
-    def add(self, metadata, file_path, line_number, columns=None):
+    def add(self, metadata, file_path, offset, width, context_width):
         anchor = make_anchor(
-            context_size=3,  # TODO: This needs to be configurable
             file_path=file_path.resolve().relative_to(self.root),
-            line_number=line_number,
+            offset=offset,
+            width=width,
+            context_width=context_width,
             metadata=metadata,
-            columns=columns,
             root=self.root)
 
         anchor_id = uuid.uuid4().hex

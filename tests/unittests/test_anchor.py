@@ -7,11 +7,17 @@ def test_make_anchor(repo):
     source = pathlib.Path('source.py')
     with source.open(mode='wt') as handle:
         handle.write('\n'.join('abcde'))
-    anchor = make_anchor(2, repo.root / source, 3, {})
+    anchor = make_anchor(
+        file_path=repo.root / source,
+        offset=4,
+        width=2,
+        context_width=4,
+        metadata={})
     assert anchor.file_path == source
-    assert anchor.line_number == 3
-    assert anchor.columns is None
+    assert anchor.context.before.offset == 0
+    assert anchor.context.before.text == 'a\nb\n'
+    assert anchor.context.topic.offset == 4
+    assert anchor.context.topic.text == 'c\n'
+    assert anchor.context.after.offset == 6
+    assert anchor.context.after.text == 'd\ne'
     assert anchor.metadata == {}
-    assert anchor.context.before == ('a\n', 'b\n')
-    assert anchor.context.line == 'c\n'
-    assert anchor.context.after == ('d\n', 'e\n')

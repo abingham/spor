@@ -37,15 +37,25 @@ def test_create_repo_with_no_repo_raises_ValueError(tmpdir_path, excursion):
 def test_add_anchor_generates_correct_anchor(repo):
     source_path = repo.root / "source.py"
     with source_path.open(mode='wt') as handle:
-        handle.write('# nothing')
+        handle.write('abcdefgh')
 
     metadata = {1: 2}
-    anchor_id = repo.add(metadata, source_path, 1)
+    anchor_id = repo.add(
+        metadata=metadata,
+        file_path=source_path,
+        offset=3,
+        width=3,
+        context_width=2)
     anchor = repo[anchor_id]
     assert anchor.file_path == source_path.relative_to(repo.root)
     assert anchor.metadata == metadata
-    assert anchor.line_number == 1
-    assert anchor.columns == None
+    assert anchor.context_width == 2
+    assert anchor.context.before.text == 'bc'
+    assert anchor.context.before.offset == 1
+    assert anchor.context.topic.text == 'def'
+    assert anchor.context.topic.offset == 3
+    assert anchor.context.after.text == 'gh'
+    assert anchor.context.after.offset == 6
 
 
 def test_get_anchor_by_id(repo):
@@ -54,7 +64,13 @@ def test_get_anchor_by_id(repo):
         handle.write('# nothing')
 
     metadata = {1: 2}
-    anchor_id = repo.add(metadata, source_path, 1)
+    anchor_id = repo.add(
+        metadata=metadata,
+        file_path=source_path,
+        offset=3,
+        width=3,
+        context_width=2)
+
     repo[anchor_id]
 
 
@@ -68,7 +84,12 @@ def test_update_updates_metadata(repo):
     with source_path.open(mode='wt') as handle:
         handle.write('# nothing')
 
-    anchor_id = repo.add({1: 2}, source_path, 1)
+    anchor_id = repo.add(
+        metadata={},
+        file_path=source_path,
+        offset=3,
+        width=3,
+        context_width=2)
 
     metadata = {3: 4}
     repo.update(anchor_id, metadata)
@@ -81,12 +102,18 @@ def test_update_raises_KeyError_for_non_existent_id(repo):
         repo.update('non-existent', {})
 
 
-def test_delete_removes_anchor(repo):
+def _test_delete_removes_anchor(repo):
     source_path = repo.root / "source.py"
     with source_path.open(mode='wt') as handle:
         handle.write('# nothing')
 
-    anchor_id = repo.add({1: 2}, source_path, 1)
+    anchor_id = repo.add(
+        metadata={},
+        file_path=source_path,
+        offset=3,
+        width=3,
+        context_width=2)
+
     assert anchor_id in repo
     del repo[anchor_id]
     assert anchor_id not in repo

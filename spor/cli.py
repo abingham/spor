@@ -42,14 +42,16 @@ def list_handler(args):
 
 @dsc.command()
 def add_handler(args):
-    """usage: {program} add <source-file> <line-number> [<begin-offset> <end-offset>]
+    """usage: {program} add <source-file> <offset> <width> <context-width>
 
     Add a new anchor for a file.
     """
     file_path = pathlib.Path(args['<source-file>']).resolve()
 
     try:
-        line_number = int(args['<line-number>'])
+        offset = int(args['<offset>'])
+        width = int(args['<width>'])
+        context_width = int(args['<context-width>'])
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
@@ -68,8 +70,7 @@ def add_handler(args):
     # TODO: More graceful handling of yaml.parser.ParserError
     metadata = yaml.load(text)
 
-    # TODO: Add support for begin/end col offset
-    repo.add(metadata, file_path, line_number)
+    repo.add(metadata, file_path, offset, width, context_width)
 
     return os.EX_OK
 
@@ -94,8 +95,7 @@ def _launch_editor(starting_text=''):
 def validate_handler(args):
     """usage: {program} validate [--print] [<path>]
 
-    Validate the anchors in the current repository.
-    """
+    Validate the anchors in the current repository."""
     path = pathlib.Path(args['<path>']) if args['<path>'] else None
     do_print = args['--print']
 
