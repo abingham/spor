@@ -35,7 +35,8 @@ def list_handler(args):
     List the anchors for a file.
     """
     for anchor in find_anchors(args['<source-file>']):
-        print("{} => {}".format(anchor, anchor.metadata))
+        print("{}:{} => {}".format(
+            anchor.file_path, anchor.context.offset, anchor.metadata))
 
     return os.EX_OK
 
@@ -77,7 +78,8 @@ def add_handler(args):
 
 def _launch_editor(starting_text=''):
     "Launch editor, let user write text, then return that text."
-    # TODO: What is a reasonable default for windows? Does this approach even make sense on windows?
+    # TODO: What is a reasonable default for windows? Does this approach even
+    # make sense on windows?
     editor = os.environ.get('EDITOR', 'vim')
 
     with tempfile.TemporaryDirectory() as dirname:
@@ -144,7 +146,8 @@ _SIGNAL_EXIT_CODE_BASE = 128
 
 def main():
     signal.signal(signal.SIGINT,
-                  lambda *args: sys.exit(_SIGNAL_EXIT_CODE_BASE + signal.SIGINT))
+                  lambda *args: sys.exit(
+                      _SIGNAL_EXIT_CODE_BASE + signal.SIGINT))
 
     try:
         return dsc.main(
