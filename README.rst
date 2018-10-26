@@ -29,7 +29,7 @@ information it needs.
 Now you can create anchors. Suppose you've got a file, ``example.py``, like
 this:
 
-.. code-block:: python 
+.. code-block:: python
 
    # example.py
 
@@ -86,15 +86,36 @@ going to try to keep it simple and explicit at first.
 Ideally spor will work on any programming language (and, really, any
 text document), though its initial target will be Python source code.
 
-Tests
-=====
+Development
+===========
 
-To run the tests, first install the test dependencies and then use |tox|_:
+Spor is new and small enough that we do fun things like try out new tools.
+Instead of `setuptools` et al., we're using `poetry
+<https://github.com/sdispater/poetry>`__. So if you want to contribute to spor,
+the first thing you need to do is to `install poetry
+<https://github.com/sdispater/poetry#installation>`__.
+
+To install the package, use::
+
+  poetry install
+
+Tests
+-----
+
+The installation command above will install all of the test dependencies as
+well. To run all of the tests, run |tox|_:
 
 .. code-block::
 
-  pip install -e .[test]
   tox
+
+To run just the `pytests` unit tests, run::
+
+  poetry run pytest tests/unittests
+
+To run the `radish` tests, run::
+
+  poetry run radish tests/e2e/features -b tests/e2e/radish
 
 Notes
 =====
