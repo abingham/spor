@@ -49,7 +49,7 @@ def create_anchor(step, filename, offset):
 def check_anchor_listing(step, filename, offset):
     output = subprocess.check_output(['spor', 'list', 'source.py'],
                                      universal_newlines=True)
-    expected = "Anchor(file_path={filename}, offset={offset}, length=3) => {{'meta': 'data'}}".format(
+    expected = "Anchor(file_path=source.py, context=Context(offset=3, topic=\" fu\", before=\"f\", after=\"n\"), context_width=1, metadata={{'meta': 'data'}}) => {{'meta': 'data'}}".format(
         filename=filename, offset=offset)
 
     assert output.strip() == expected.strip(), 'expected: {}, actual: {}'.format(expected, output)
@@ -57,13 +57,13 @@ def check_anchor_listing(step, filename, offset):
 
 @then('the repository is valid')
 def check_repo_is_valid(step):
-    subprocess.check_call(['spor', 'validate'])
+    subprocess.check_call(['spor', 'validate', '--no-print'])
 
 
 @then('the repository is invalid')
 def check_repo_is_invalid(step):
     try:
-        subprocess.check_call(['spor', 'validate'])
+        subprocess.check_call(['spor', 'validate', '--no-print'])
         assert False, 'validate should fail'
     except subprocess.CalledProcessError as exc:
         assert exc.returncode == 1

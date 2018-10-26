@@ -50,12 +50,10 @@ def test_add_anchor_generates_correct_anchor(repo):
     assert anchor.file_path == source_path.relative_to(repo.root)
     assert anchor.metadata == metadata
     assert anchor.context_width == 2
-    assert anchor.context.before.text == 'bc'
-    assert anchor.context.before.offset == 1
-    assert anchor.context.topic.text == 'def'
-    assert anchor.context.topic.offset == 3
-    assert anchor.context.after.text == 'gh'
-    assert anchor.context.after.offset == 6
+    assert anchor.context.before== 'bc'
+    assert anchor.context.topic == 'def'
+    assert anchor.context.offset == 3
+    assert anchor.context.after == 'gh'
 
 
 def test_get_anchor_by_id(repo):

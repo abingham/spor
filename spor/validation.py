@@ -11,8 +11,8 @@ def _split_keep_sep(s, sep):
 
 
 def _context_diff(file_name, c1, c2):
-    c1_text = _split_keep_sep(c1.full, '\n')
-    c2_text = _split_keep_sep(c2.full, '\n')
+    c1_text = _split_keep_sep(c1.full_text, '\n')
+    c2_text = _split_keep_sep(c2.full_text, '\n')
 
     return difflib.context_diff(
         c1_text, c2_text,
@@ -22,17 +22,19 @@ def _context_diff(file_name, c1, c2):
 
 def validate(repo):
     for (anchor_id, anchor) in repo.items():
+        # TODO: Account for the fact that this can raise a ValueError if it
+        # can't read the specified topic.
         new_anchor = make_anchor(
             file_path=anchor.file_path,
-            offset=anchor.context.topic.offset,
-            width=len(anchor.context.topic.text),
+            offset=anchor.context.offset,
+            width=len(anchor.context.topic),
             context_width=anchor.context_width,
             metadata=anchor.metadata,
             root=repo.root)
 
         assert anchor.file_path == new_anchor.file_path
-        assert anchor.context.topic.offset == new_anchor.context.topic.offset
-        assert len(anchor.context.topic.text) == len(new_anchor.context.topic.text)
+        assert anchor.context.offset == new_anchor.context.offset
+        assert len(anchor.context.topic) == len(new_anchor.context.topic)
         assert anchor.metadata == new_anchor.metadata
 
         diff = tuple(

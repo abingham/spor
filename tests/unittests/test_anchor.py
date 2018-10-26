@@ -14,10 +14,8 @@ def test_make_anchor(repo):
         context_width=4,
         metadata={})
     assert anchor.file_path == source
-    assert anchor.context.before.offset == 0
-    assert anchor.context.before.text == 'a\nb\n'
-    assert anchor.context.topic.offset == 4
-    assert anchor.context.topic.text == 'c\n'
-    assert anchor.context.after.offset == 6
-    assert anchor.context.after.text == 'd\ne'
+    assert anchor.context.before == 'a\nb\n'
+    assert anchor.context.offset == 4
+    assert anchor.context.topic == 'c\n'
+    assert anchor.context.after == 'd\ne'
     assert anchor.metadata == {}

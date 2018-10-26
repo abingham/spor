@@ -1,62 +1,45 @@
-import linecache
 import pathlib
 
 import yaml
 
 
-class Span:
-    def __init__(self, offset, text):
-        if offset < 0:
-            raise ValueError("Span offset {} is less than 0".format(offset))
-
-        self._offset = offset
-        self._text = text
-
-    @property
-    def offset(self):
-        return self._offset
-
-    @property
-    def text(self):
-        return self._text
-
-    def __repr__(self):
-        return "Span(offset={}, text={})".format(self._offset, self.text)
-
-
 class Context:
-    def __init__(self, topic, before, after):
-        if not before.offset <= topic.offset:
-            raise ValueError(
-                "Context 'before' must not start after the topic")
-
-        if not after.offset > topic.offset:
-            raise ValueError(
-                "Context 'after' must start after the topic.")
+    def __init__(self, offset, topic, before, after):
+        if offset < 0:
+            raise ValueError("Context offset {} is less than 0".format(offset))
 
         self._before = before
+        self._offset = offset
         self._topic = topic
         self._after = after
 
     @property
     def before(self):
+        "The text before the topic."
         return self._before
 
     @property
+    def offset(self):
+        "The offset of the topic in the source."
+        return self._offset
+
+    @property
     def topic(self):
+        "The text of the topic."
         return self._topic
 
     @property
     def after(self):
+        "The text after the topic."
         return self._after
 
     @property
-    def full(self):
-        return self.before.text + self.topic.text + self.after.text
+    def full_text(self):
+        return self.before + self.topic + self.after
 
     def __repr__(self):
-        return 'Context:\n  text: {}\n  before: {}\n  after: {}'.format(
-            self.topic, self.before, self.after)
+        return 'Context(offset={}, topic="{}", before="{}", after="{}")'.format(
+            self.offset, self.topic, self.before, self.after)
 
 
 class Anchor:
@@ -67,10 +50,8 @@ class Anchor:
         self.metadata = metadata
 
     def __repr__(self):
-        return 'Anchor(file_path={}, offset={}, length={})'.format(
-            self.file_path,
-            self.context.topic.offset,
-            len(self.context.topic.text))
+        return 'Anchor(file_path={}, context={}, context_width={}, metadata={})'.format(
+            self.file_path, self.context, self.context_width, self.metadata)
 
 
 def _make_context(file_path, offset, width, context_width):
@@ -82,26 +63,23 @@ def _make_context(file_path, offset, width, context_width):
             raise ValueError(
                 "Unable to read topic of length {} from {} at offset {}".format(
                     width, file_path, offset))
-        topic_span = Span(offset, topic)
 
         # read before
         before_offset = max(0, offset - context_width)
         before_width = offset - before_offset
         handle.seek(before_offset)
-        before_text = handle.read(before_width)
-        if len(before_text) < before_width:
+        before = handle.read(before_width)
+        if len(before) < before_width:
             raise ValueError(
                 "Unable to read before-text of length {} from {} at offset {}".format(
                     before_width, file_path, before_offset))
-        before_span = Span(before_offset, before_text)
 
         # read after
         after_offset = offset + width
         handle.seek(after_offset)
-        after_text = handle.read(context_width)
-        after_span = Span(after_offset, after_text)
+        after = handle.read(context_width)
 
-        return Context(topic_span, before_span, after_span)
+        return Context(offset, topic, before, after)
 
 
 def make_anchor(file_path,
@@ -110,6 +88,11 @@ def make_anchor(file_path,
                 context_width,
                 metadata,
                 root=None):
+    """Construct a new `Anchor`.
+
+    Raises:
+        ValueError: `width` characters can't be read at `offset`.
+    """
     root = pathlib.Path.cwd() if root is None else root
     full_path = root / file_path
 
@@ -121,31 +104,14 @@ def make_anchor(file_path,
         metadata=metadata)
 
 
-def _span_representer(dumper, span):
-    return dumper.represent_mapping(
-        '!spor_span',
-        {
-            'offset': span.offset,
-            'text': span.text,
-        })
-
-
-def _span_constructor(loader, node):
-    value = loader.construct_mapping(node)
-    return Span(**value)
-
-
-yaml.add_representer(Span, _span_representer)
-yaml.add_constructor('!spor_span', _span_constructor)
-
-
 def _context_representer(dumper, context):
     return dumper.represent_mapping(
         '!spor_context',
         {
             'before': context.before,
             'after': context.after,
-            'topic': context.topic
+            'topic': context.topic,
+            'offset': context.offset
         })
 
 
