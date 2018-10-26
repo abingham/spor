@@ -113,11 +113,11 @@ def update_handler(args):
 
 @dsc.command()
 def validate_handler(args):
-    """usage: {program} validate [--print] [<path>]
+    """usage: {program} validate [--no-print] [<path>]
 
     Validate the anchors in the current repository."""
     path = pathlib.Path(args['<path>']) if args['<path>'] else None
-    do_print = args['--print']
+    do_print = not args['--no-print']
 
     try:
         repo = Repository(path)
