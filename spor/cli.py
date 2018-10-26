@@ -10,6 +10,7 @@ import docopt_subcommands as dsc
 import yaml
 
 from .repo import find_anchors, Repository
+from .updating import update
 from .validation import validate
 
 
@@ -107,10 +108,9 @@ def update_handler(args):
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
 
-    from spor.updating import update
     for anchor_id, anchor in repo.items():
-        new_anchor = update(anchor)
-        print(new_anchor)
+        anchor = update(anchor)
+        repo.update(anchor_id, anchor)
 
 
 @dsc.command()

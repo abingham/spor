@@ -89,15 +89,13 @@ def test_update_updates_metadata(repo):
         width=3,
         context_width=2)
 
-    metadata = {3: 4}
-    repo.update(anchor_id, metadata)
+    new_metadata = {3: 4}
     anchor = repo[anchor_id]
-    assert anchor.metadata == metadata
+    anchor.metadata = new_metadata
 
-
-def test_update_raises_KeyError_for_non_existent_id(repo):
-    with pytest.raises(KeyError):
-        repo.update('non-existent', {})
+    repo[anchor_id] = anchor
+    anchor = repo[anchor_id]
+    assert anchor.metadata == new_metadata
 
 
 def _test_delete_removes_anchor(repo):

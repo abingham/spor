@@ -92,9 +92,7 @@ class Repository:
             raise KeyError(
                 'No anchor with id {}'.format(anchor_id))
 
-    def update(self, anchor_id, metadata):
-        anchor = self[anchor_id]
-        anchor.metadata = metadata
+    def __setitem__(self, anchor_id, anchor):
         with self._anchor_path(anchor_id).open(mode='wt') as f:
             yaml.dump(anchor, f)
 
