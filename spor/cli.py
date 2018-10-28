@@ -114,7 +114,7 @@ def update_handler(args):
 
     for anchor_id, anchor in repo.items():
         anchor = update(anchor)
-        repo.update(anchor_id, anchor)
+        repo[anchor_id] = anchor
 
 
 @dsc.command()

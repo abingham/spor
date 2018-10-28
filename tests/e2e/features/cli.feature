@@ -22,3 +22,11 @@ Feature: Command line interface
     When I create a new anchor for "source.py" at offset 3
     When I modify "source.py"
     Then the repository is invalid
+
+  Scenario: Updating fixes validation
+    Given I initialize a repository
+    And I create the source file "source.py"
+    When I create a new anchor for "source.py" at offset 3
+    When I modify "source.py"
+    When I update the repository
+    Then the repository is valid
