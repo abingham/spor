@@ -1,7 +1,3 @@
-import json
-import pathlib
-
-
 class Context:
     def __init__(self, offset, topic, before, after):
         if offset < 0:
@@ -101,47 +97,3 @@ def make_anchor(file_path,
         context=context,
         context_width=context_width,
         metadata=metadata)
-
-
-class JSONEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Anchor):
-            return {
-                '!spor_anchor': {
-                    # TODO: Remove repository root from front.
-                    'file_path': str(obj.file_path),
-                    'context': obj.context,
-                    'context_width': obj.context_width,
-                    'metadata': obj.metadata
-                }
-            }
-        elif isinstance(obj, Context):
-            return {
-                '!spor_context': {
-                    'before': obj.before,
-                    'after': obj.after,
-                    'topic': obj.topic,
-                    'offset': obj.offset
-                }
-            }
-
-        return super().default(self, obj)
-
-
-class JSONDecoder(json.JSONDecoder):
-    def __init__(self):
-        super().__init__(object_hook=JSONDecoder.object_hook)
-
-    @staticmethod
-    def object_hook(dct):
-        if '!spor_anchor' in dct:
-            data = dct['!spor_anchor']
-            return Anchor(
-                # TODO: Add repo too to front
-                file_path=pathlib.Path(data['file_path']),
-                context=data['context'],
-                context_width=data['context_width'],
-                metadata=data['metadata'])
-        elif '!spor_context' in dct:
-            return Context(**dct['!spor_context'])
-        return dct

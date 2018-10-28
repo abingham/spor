@@ -10,7 +10,7 @@ import docopt
 import docopt_subcommands as dsc
 
 from .anchor import make_anchor
-from .repository import find_anchors, initialize_repository, open_repository
+from .repository import initialize_repository, open_repository
 from .updating import update
 from .validation import validate
 
