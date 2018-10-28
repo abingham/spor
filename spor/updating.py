@@ -37,7 +37,7 @@ def update(anchor):
         AlignmentError: If no anchor could be created. The message of the
             exception will say what the problem is.
     """
-    with open(anchor.file_path, mode='rt') as handle:
+    with anchor.file_path.open(mode='rt') as handle:
         source_text = handle.read()
 
     ctxt = anchor.context
