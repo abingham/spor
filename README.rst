@@ -37,20 +37,23 @@ this:
    def func(x):
        return x * 2
 
-You can anchor metadata to line 4 (the function definition) like this::
+You can anchor metadata to line 4 (the function definition) by specifying the starting offset and anchor width like this::
 
-  $ echo "{meta: data}" | spor add example.py 4
+  $ echo "{meta: data}" | spor add example.py 32 12 10
 
 .. pull-quote::
 
   You don't have to pipe the metadata into the ``add`` command. If you don't,
   spor will pop up an editor so that you can enter the metadata there.
 
-This will associate the dictionary ``{meta: data}`` with that line. You can see
+The `10` at the end specifies the size of the "context" around the anchored code
+that we use for updating anchors.
+
+This will associate the dictionary ``{meta: data}`` with the code `return x * 2`. You can see
 this metadata by using the ``list`` command::
 
   $ spor list example.py
-  Anchor(file_path=example.py, line_number=4, columns=None) => {'meta': 'data'}
+  example.py:32 => {1: 2}
 
 The metadata can be any valid YAML. spor doesn't look at the data at all, so
 it's entirely up to you to decide what goes there.
