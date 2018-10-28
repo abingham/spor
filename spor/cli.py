@@ -36,9 +36,12 @@ def list_handler(args):
 
     List the anchors for a file.
     """
-    for anchor in find_anchors(args['<source-file>']):
-        print("{}:{} => {}".format(anchor.file_path, anchor.context.offset,
-                                   anchor.metadata))
+    repo = open_repository(args['<source-file>'])
+    for anchor_id, anchor in repo.items():
+        print("{}:{} => {}".format(
+            anchor.file_path.relative_to(repo.root),
+            anchor.context.offset,
+            anchor.metadata))
 
     return os.EX_OK
 

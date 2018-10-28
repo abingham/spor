@@ -43,6 +43,9 @@ class Context:
 
 class Anchor:
     def __init__(self, file_path, context, context_width, metadata):
+        if not file_path.is_absolute():
+            raise ValueError("Anchors file-paths must be absolute.")
+
         self.file_path = file_path
         self.context = context
         self.context_width = context_width
@@ -85,19 +88,16 @@ def make_anchor(file_path,
                 offset,
                 width,
                 context_width,
-                metadata,
-                root=None):
+                metadata):
     """Construct a new `Anchor`.
 
     Raises:
         ValueError: `width` characters can't be read at `offset`.
+        ValueError: `file_path` is not absolute.
     """
-    root = pathlib.Path.cwd() if root is None else root
-    full_path = root / file_path
-
-    context = _make_context(full_path, offset, width, context_width)
+    context = _make_context(file_path, offset, width, context_width)
     return Anchor(
-        file_path=file_path.resolve().relative_to(root),
+        file_path=file_path,
         context=context,
         context_width=context_width,
         metadata=metadata)

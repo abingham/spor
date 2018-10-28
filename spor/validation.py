@@ -29,8 +29,7 @@ def validate(repo):
             offset=anchor.context.offset,
             width=len(anchor.context.topic),
             context_width=anchor.context_width,
-            metadata=anchor.metadata,
-            root=repo.root)
+            metadata=anchor.metadata)
 
         assert anchor.file_path == new_anchor.file_path
         assert anchor.context.offset == new_anchor.context.offset

@@ -4,11 +4,13 @@ from spor.anchor import make_anchor
 
 
 def test_make_anchor(repo):
-    source = pathlib.Path('source.py')
+    source = repo.root / pathlib.Path('source.py')
+
     with source.open(mode='wt') as handle:
         handle.write('\n'.join('abcde'))
+
     anchor = make_anchor(
-        file_path=repo.root / source,
+        file_path=source,
         offset=4,
         width=2,
         context_width=4,

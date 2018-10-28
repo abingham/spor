@@ -56,7 +56,7 @@ class Repository:
     """
 
     def __init__(self, root, spor_dir):
-        self._root = root
+        self._root = pathlib.Path(root).resolve()
         self._spor_dir = self.root / spor_dir
         if not self._spor_dir.exists():
             raise ValueError("Repository directory does not exist: {}".format(

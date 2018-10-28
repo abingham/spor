@@ -51,7 +51,7 @@ def test_add_anchor_generates_correct_anchor(repo):
             metadata=metadata))
 
     anchor = repo[anchor_id]
-    assert anchor.file_path == source_path.relative_to(repo.root)
+    assert anchor.file_path == source_path
     assert anchor.metadata == metadata
     assert anchor.context_width == 2
     assert anchor.context.before == 'bc'
