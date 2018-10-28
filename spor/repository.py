@@ -68,7 +68,7 @@ class Repository:
         """The root directory of the repository."""
         return self._root
 
-    def add(self, metadata, file_path, offset, width, context_width):
+    def add(self, anchor):
         """Add a new anchor to the repository.
 
         This will create a new ID for the anchor and provision new storage for
@@ -78,14 +78,6 @@ class Repository:
             the anchor later.
 
         """
-        anchor = make_anchor(
-            file_path=file_path.resolve().relative_to(self.root),
-            offset=offset,
-            width=width,
-            context_width=context_width,
-            metadata=metadata,
-            root=self.root)
-
         anchor_id = uuid.uuid4().hex
         anchor_path = self._anchor_path(anchor_id)
         with anchor_path.open(mode='wt') as f:

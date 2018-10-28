@@ -1,5 +1,6 @@
 import pytest
 
+from spor.anchor import make_anchor
 from spor.repository import initialize_repository, open_repository
 
 
@@ -40,12 +41,15 @@ def test_add_anchor_generates_correct_anchor(repo):
         handle.write('abcdefgh')
 
     metadata = {1: 2}
+
     anchor_id = repo.add(
-        metadata=metadata,
-        file_path=source_path,
-        offset=3,
-        width=3,
-        context_width=2)
+        make_anchor(
+            file_path=source_path,
+            offset=3,
+            width=3,
+            context_width=2,
+            metadata=metadata))
+
     anchor = repo[anchor_id]
     assert anchor.file_path == source_path.relative_to(repo.root)
     assert anchor.metadata == metadata
@@ -63,11 +67,12 @@ def test_get_anchor_by_id(repo):
 
     metadata = {1: 2}
     anchor_id = repo.add(
-        metadata=metadata,
-        file_path=source_path,
-        offset=3,
-        width=3,
-        context_width=2)
+        make_anchor(
+            metadata=metadata,
+            file_path=source_path,
+            offset=3,
+            width=3,
+            context_width=2))
 
     repo[anchor_id]
 
@@ -83,11 +88,12 @@ def test_update_updates_metadata(repo):
         handle.write('# nothing')
 
     anchor_id = repo.add(
-        metadata={},
-        file_path=source_path,
-        offset=3,
-        width=3,
-        context_width=2)
+        make_anchor(
+            metadata={},
+            file_path=source_path,
+            offset=3,
+            width=3,
+            context_width=2))
 
     new_metadata = {3: 4}
     anchor = repo[anchor_id]
@@ -104,11 +110,12 @@ def _test_delete_removes_anchor(repo):
         handle.write('# nothing')
 
     anchor_id = repo.add(
-        metadata={},
-        file_path=source_path,
-        offset=3,
-        width=3,
-        context_width=2)
+        make_anchor(
+            metadata={},
+            file_path=source_path,
+            offset=3,
+            width=3,
+            context_width=2))
 
     assert anchor_id in repo
     del repo[anchor_id]

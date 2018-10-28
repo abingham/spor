@@ -9,6 +9,7 @@ import docopt
 import docopt_subcommands as dsc
 import yaml
 
+from .anchor import make_anchor
 from .repository import find_anchors, initialize_repository, open_repository
 from .updating import update
 from .validation import validate
@@ -72,7 +73,10 @@ def add_handler(args):
     # TODO: More graceful handling of yaml.parser.ParserError
     metadata = yaml.load(text)
 
-    repo.add(metadata, file_path, offset, width, context_width)
+    anchor = make_anchor(
+        file_path, offset, width, context_width, metadata)
+
+    repo.add(anchor)
 
     return os.EX_OK
 
