@@ -1,23 +1,23 @@
 import pytest
 
-from spor.repo import Repository
+from spor.repository import initialize_repository, open_repository
 
 
 def test_initialize_repo_creates_directory(tmpdir_path):
     assert not (tmpdir_path / '.spor').exists()
-    Repository.initialize(tmpdir_path)
+    initialize_repository(tmpdir_path)
     assert (tmpdir_path / '.spor').exists()
 
 
 def test_initialize_duplicate_repo_raises_ValueError(tmpdir_path):
-    Repository.initialize(tmpdir_path)
+    initialize_repository(tmpdir_path)
     with pytest.raises(ValueError):
-        Repository.initialize(tmpdir_path)
+        initialize_repository(tmpdir_path)
 
 
 def test_create_repo_from_root(tmpdir_path):
-    Repository.initialize(tmpdir_path)
-    repo = Repository(tmpdir_path)
+    initialize_repository(tmpdir_path)
+    repo = open_repository(tmpdir_path)
     assert repo.root == tmpdir_path
     assert repo._spor_dir == tmpdir_path / '.spor'
 
@@ -25,13 +25,13 @@ def test_create_repo_from_root(tmpdir_path):
 def test_create_repo_from_nested_dir(repo):
     nested = repo.root / 'nested'
     nested.mkdir()
-    assert Repository(nested).root == repo.root
+    assert open_repository(nested).root == repo.root
 
 
 def test_create_repo_with_no_repo_raises_ValueError(tmpdir_path, excursion):
     with excursion(tmpdir_path):
         with pytest.raises(ValueError):
-            Repository(tmpdir_path)
+            open_repository(tmpdir_path)
 
 
 def test_add_anchor_generates_correct_anchor(repo):
@@ -50,7 +50,7 @@ def test_add_anchor_generates_correct_anchor(repo):
     assert anchor.file_path == source_path.relative_to(repo.root)
     assert anchor.metadata == metadata
     assert anchor.context_width == 2
-    assert anchor.context.before== 'bc'
+    assert anchor.context.before == 'bc'
     assert anchor.context.topic == 'def'
     assert anchor.context.offset == 3
     assert anchor.context.after == 'gh'

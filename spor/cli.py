@@ -9,7 +9,7 @@ import docopt
 import docopt_subcommands as dsc
 import yaml
 
-from .repo import find_anchors, Repository
+from .repository import find_anchors, initialize_repository, open_repository
 from .updating import update
 from .validation import validate
 
@@ -21,7 +21,7 @@ def init_handler(args):
     Initialize a new spor repository in the current directory.
     """
     try:
-        Repository.initialize(pathlib.Path.cwd())
+        initialize_repository(pathlib.Path.cwd())
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
@@ -59,7 +59,7 @@ def add_handler(args):
         return os.EX_DATAERR
 
     try:
-        repo = Repository(file_path)
+        repo = open_repository(file_path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
@@ -103,7 +103,7 @@ def update_handler(args):
     path = pathlib.Path(args['<path>']) if args['<path>'] else None
 
     try:
-        repo = Repository(path)
+        repo = open_repository(path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
@@ -122,7 +122,7 @@ def validate_handler(args):
     do_print = not args['--no-print']
 
     try:
-        repo = Repository(path)
+        repo = open_repository(path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return os.EX_DATAERR
