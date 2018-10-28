@@ -1,6 +1,5 @@
+import json
 import pathlib
-
-import yaml
 
 
 class Context:
@@ -104,42 +103,45 @@ def make_anchor(file_path,
         metadata=metadata)
 
 
-def _context_representer(dumper, context):
-    return dumper.represent_mapping(
-        '!spor_context',
-        {
-            'before': context.before,
-            'after': context.after,
-            'topic': context.topic,
-            'offset': context.offset
-        })
+class JSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Anchor):
+            return {
+                '!spor_anchor': {
+                    # TODO: Remove repository root from front.
+                    'file_path': str(obj.file_path),
+                    'context': obj.context,
+                    'context_width': obj.context_width,
+                    'metadata': obj.metadata
+                }
+            }
+        elif isinstance(obj, Context):
+            return {
+                '!spor_context': {
+                    'before': obj.before,
+                    'after': obj.after,
+                    'topic': obj.topic,
+                    'offset': obj.offset
+                }
+            }
+
+        return super().default(self, obj)
 
 
-def _context_constructor(loader, node):
-    value = loader.construct_mapping(node)
-    return Context(**value)
+class JSONDecoder(json.JSONDecoder):
+    def __init__(self):
+        super().__init__(object_hook=JSONDecoder.object_hook)
 
-
-yaml.add_representer(Context, _context_representer)
-yaml.add_constructor('!spor_context', _context_constructor)
-
-
-def _anchor_representer(dumper, anchor):
-    return dumper.represent_mapping(
-        '!spor_anchor',
-        {
-            'file_path': str(anchor.file_path),
-            'context': anchor.context,
-            'context_width': anchor.context_width,
-            'metadata': anchor.metadata,
-        })
-
-
-def _anchor_constructor(loader, node):
-    value = loader.construct_mapping(node)
-    value['file_path'] = pathlib.Path(value['file_path'])
-    return Anchor(**value)
-
-
-yaml.add_representer(Anchor, _anchor_representer)
-yaml.add_constructor('!spor_anchor', _anchor_constructor)
+    @staticmethod
+    def object_hook(dct):
+        if '!spor_anchor' in dct:
+            data = dct['!spor_anchor']
+            return Anchor(
+                # TODO: Add repo too to front
+                file_path=pathlib.Path(data['file_path']),
+                context=data['context'],
+                context_width=data['context_width'],
+                metadata=data['metadata'])
+        elif '!spor_context' in dct:
+            return Context(**dct['!spor_context'])
+        return dct

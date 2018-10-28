@@ -1,3 +1,4 @@
+import json
 import os
 import pathlib
 import signal
@@ -7,7 +8,6 @@ import tempfile
 
 import docopt
 import docopt_subcommands as dsc
-import yaml
 
 from .anchor import make_anchor
 from .repository import find_anchors, initialize_repository, open_repository
@@ -37,8 +37,8 @@ def list_handler(args):
     List the anchors for a file.
     """
     for anchor in find_anchors(args['<source-file>']):
-        print("{}:{} => {}".format(
-            anchor.file_path, anchor.context.offset, anchor.metadata))
+        print("{}:{} => {}".format(anchor.file_path, anchor.context.offset,
+                                   anchor.metadata))
 
     return os.EX_OK
 
@@ -66,15 +66,14 @@ def add_handler(args):
         return os.EX_DATAERR
 
     if sys.stdin.isatty():
-        text = _launch_editor('# yaml metadata')
+        text = _launch_editor('# json metadata')
     else:
         text = sys.stdin.read()
 
-    # TODO: More graceful handling of yaml.parser.ParserError
-    metadata = yaml.load(text)
+    # TODO: More graceful handling of json parsing errors
+    metadata = json.loads(text)
 
-    anchor = make_anchor(
-        file_path, offset, width, context_width, metadata)
+    anchor = make_anchor(file_path, offset, width, context_width, metadata)
 
     repo.add(anchor)
 
@@ -149,14 +148,12 @@ _SIGNAL_EXIT_CODE_BASE = 128
 
 
 def main():
-    signal.signal(signal.SIGINT,
-                  lambda *args: sys.exit(
-                      _SIGNAL_EXIT_CODE_BASE + signal.SIGINT))
+    signal.signal(
+        signal.SIGINT,
+        lambda *args: sys.exit(_SIGNAL_EXIT_CODE_BASE + signal.SIGINT))
 
     try:
-        return dsc.main(
-            program='spor',
-            version='spor v0.0.0')
+        return dsc.main(program='spor', version='spor v0.0.0')
     except docopt.DocoptExit as exc:
         print(exc, file=sys.stderr)
         return os.EX_USAGE

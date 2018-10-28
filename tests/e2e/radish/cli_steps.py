@@ -42,7 +42,7 @@ def create_anchor(step, filename, offset):
                             universal_newlines=True,
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE)
-    output, output_err = proc.communicate(input='{meta: data}')
+    output, output_err = proc.communicate(input='{"meta": "data"}')
     assert output_err is None
 
 

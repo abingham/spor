@@ -1,10 +1,9 @@
+import json
 import os
 import pathlib
 import uuid
 
-import yaml
-
-from .anchor import make_anchor
+import spor.anchor
 
 
 def initialize_repository(path, spor_dir='.spor'):
@@ -81,7 +80,7 @@ class Repository:
         anchor_id = uuid.uuid4().hex
         anchor_path = self._anchor_path(anchor_id)
         with anchor_path.open(mode='wt') as f:
-            yaml.dump(anchor, f)
+            json.dump(anchor, f, cls=spor.anchor.JSONEncoder)
 
         return anchor_id
 
@@ -100,7 +99,7 @@ class Repository:
 
         try:
             with file_path.open(mode='rt') as handle:
-                return yaml.load(handle.read())
+                return json.load(handle, cls=spor.anchor.JSONDecoder)
         except OSError:
             raise KeyError('No anchor with id {}'.format(anchor_id))
 
@@ -115,7 +114,7 @@ class Repository:
             anchor: The anchor to store.
         """
         with self._anchor_path(anchor_id).open(mode='wt') as f:
-            yaml.dump(anchor, f)
+            json.dump(anchor, f, cls=spor.anchor.JSONEncoder)
 
     def __delitem__(self, anchor_id):
         """Remove an anchor from storage.

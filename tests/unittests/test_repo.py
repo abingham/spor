@@ -40,7 +40,7 @@ def test_add_anchor_generates_correct_anchor(repo):
     with source_path.open(mode='wt') as handle:
         handle.write('abcdefgh')
 
-    metadata = {1: 2}
+    metadata = {"1": 2}
 
     anchor_id = repo.add(
         make_anchor(
@@ -65,7 +65,7 @@ def test_get_anchor_by_id(repo):
     with source_path.open(mode='wt') as handle:
         handle.write('# nothing')
 
-    metadata = {1: 2}
+    metadata = {"1": 2}
     anchor_id = repo.add(
         make_anchor(
             metadata=metadata,
@@ -95,7 +95,7 @@ def test_update_updates_metadata(repo):
             width=3,
             context_width=2))
 
-    new_metadata = {3: 4}
+    new_metadata = {"3": 4}
     anchor = repo[anchor_id]
     anchor.metadata = new_metadata
 
