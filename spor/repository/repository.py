@@ -1,9 +1,8 @@
-import json
 import os
 import pathlib
 import uuid
 
-import spor.anchor
+from .persistence import load_anchor, save_anchor
 
 
 def initialize_repository(path, spor_dir='.spor'):
@@ -72,7 +71,7 @@ class Repository:
         anchor_id = uuid.uuid4().hex
         anchor_path = self._anchor_path(anchor_id)
         with anchor_path.open(mode='wt') as f:
-            json.dump(anchor, f, cls=make_encoder(self.root))
+            save_anchor(f, anchor, self.root)
 
         return anchor_id
 
@@ -91,7 +90,7 @@ class Repository:
 
         try:
             with file_path.open(mode='rt') as handle:
-                return json.load(handle, cls=make_decoder(self.root))
+                return load_anchor(handle, self.root)
         except OSError:
             raise KeyError('No anchor with id {}'.format(anchor_id))
 
@@ -106,7 +105,7 @@ class Repository:
             anchor: The anchor to store.
         """
         with self._anchor_path(anchor_id).open(mode='wt') as f:
-            json.dump(anchor, f, cls=make_encoder(self.root))
+            save_anchor(f, anchor, self.root)
 
     def __delitem__(self, anchor_id):
         """Remove an anchor from storage.
@@ -170,52 +169,3 @@ def _find_root_dir(path, spor_dir):
             return path
 
     raise ValueError('No spor repository found')
-
-
-def make_encoder(repo_root):
-    class JSONEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, spor.anchor.Anchor):
-                return {
-                    '!spor_anchor': {
-                        'file_path': str(obj.file_path.relative_to(repo_root)),
-                        'context': obj.context,
-                        'context_width': obj.context_width,
-                        'metadata': obj.metadata
-                    }
-                }
-            elif isinstance(obj, spor.anchor.Context):
-                return {
-                    '!spor_context': {
-                        'before': obj.before,
-                        'after': obj.after,
-                        'topic': obj.topic,
-                        'offset': obj.offset
-                    }
-                }
-
-            return super().default(self, obj)
-
-    return JSONEncoder
-
-
-def make_decoder(repo_root):
-    class JSONDecoder(json.JSONDecoder):
-        def __init__(self):
-            super().__init__(object_hook=self.anchor_decoder)
-
-        def anchor_decoder(self, dct):
-            if '!spor_anchor' in dct:
-                data = dct['!spor_anchor']
-                return spor.anchor.Anchor(
-                    file_path=repo_root / data['file_path'],
-                    context=data['context'],
-                    context_width=data['context_width'],
-                    metadata=data['metadata'])
-
-            elif '!spor_context' in dct:
-                return spor.anchor.Context(**dct['!spor_context'])
-
-            return dct
-
-    return JSONDecoder
