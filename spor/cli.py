@@ -73,8 +73,11 @@ def add_handler(args):
     else:
         text = sys.stdin.read()
 
-    # TODO: More graceful handling of json parsing errors
-    metadata = json.loads(text)
+    try:
+        metadata = json.loads(text)
+    except json.JSONDecodeError:
+        print('Failed to create anchor. Invalid JSON metadata.', file=sys.stderr)
+        return os.EX_DATAERR
 
     anchor = make_anchor(file_path, offset, width, context_width, metadata)
 
