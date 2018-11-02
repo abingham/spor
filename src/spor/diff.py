@@ -20,10 +20,10 @@ def _context_diff(file_name, c1, c2):
         tofile='{} [current]'.format(file_name))
 
 
-def diff(anchor):
-    """Get the diff between an anchor and the current state of its source.
+def get_anchor_diff(anchor):
+    """Get the get_anchor_diff between an anchor and the current state of its source.
 
-    Returns: A tuple of diff lines. If there is not different, then this
+    Returns: A tuple of get_anchor_diff lines. If there is not different, then this
         returns an empty tuple.
     """
     new_anchor = make_anchor(

@@ -13,7 +13,7 @@ from exit_codes import ExitCode
 from .anchor import make_anchor
 from .repository import initialize_repository, open_repository
 from .updating import AlignmentError, update
-from .diff import diff
+from .diff import get_anchor_diff
 
 
 class ExitError(Exception):
@@ -179,7 +179,7 @@ def status_handler(args):
     repo = _open_repo(args)
 
     for anchor_id, anchor in repo.items():
-        diff_lines = diff(anchor)
+        diff_lines = get_anchor_diff(anchor)
         if diff_lines:
             print('{} {}:{} out-of-date'.format(
                 anchor_id,
@@ -191,7 +191,7 @@ def status_handler(args):
 
 @dsc.command()
 def diff_handler(args):
-    """usage: {program} diff <anchor-id> [<path>]
+    """usage: {program} get_anchor_diff <anchor-id> [<path>]
 
     Show the difference between an anchor and the current state of the source.
     """
@@ -199,7 +199,7 @@ def diff_handler(args):
     repo = _open_repo(args)
     anchor = _get_anchor(repo, args['<anchor-id>'])
 
-    diff_lines = diff(anchor)
+    diff_lines = get_anchor_diff(anchor)
     sys.stdout.writelines(diff_lines)
 
     return ExitCode.OK
