@@ -25,20 +25,27 @@ class AlignmentError(Exception):
     pass
 
 
-def update(anchor):
+def update(anchor, handle=None):
     """Update an anchor based on the current contents of its source file.
 
     Args:
         anchor: The `Anchor` to be updated.
+        handle: File-like object containing contents of the anchor's file. If
+            `None`, then this function will open the file and read it.
 
     Returns: A new `Anchor`, possibly identical to the input.
 
     Raises:
         AlignmentError: If no anchor could be created. The message of the
             exception will say what the problem is.
+
     """
-    with anchor.file_path.open(mode='rt') as handle:
+    if handle is None:
+        with anchor.file_path.open(mode='rt') as fp:
+            source_text = fp.read()
+    else:
         source_text = handle.read()
+        handle.seek(0)
 
     ctxt = anchor.context
 
@@ -66,11 +73,10 @@ def update(anchor):
         raise AlignmentError(
             "Best alignment does not map topic to updated source.")
 
-    # TODO: This can throw index errors, indicating that there are no source
-    # indices. Translate this to some reasonable API for this function.
     return make_anchor(
         file_path=anchor.file_path,
         offset=source_indices[0],
         width=len(source_indices),
         context_width=anchor.context.width,
-        metadata=anchor.metadata)
+        metadata=anchor.metadata,
+        handle=handle)

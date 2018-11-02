@@ -42,6 +42,16 @@ class Context:
     def full_text(self):
         return self.before + self.topic + self.after
 
+    def __eq__(self, rhs):
+        return all((
+            self.before == rhs.before,
+            self.offset == rhs.offset,
+            self.topic == rhs.topic,
+            self.after == rhs.after,
+            self.width == rhs.width,
+        ))
+
+
     def __repr__(self):
         return 'Context(offset={}, topic="{}", before="{}", after="{}", width={})'.format(
             self.offset, self.topic, self.before, self.after, self.width)
@@ -57,8 +67,16 @@ class Anchor:
         self.context = context
         self.metadata = metadata
 
+    def __eq__(self, rhs):
+        return all((
+            self.file_path == rhs.file_path,
+            self.encoding == rhs.encoding,
+            self.context == rhs.context,
+            self.metadata == rhs.metadata
+        ))
+
     def __repr__(self):
-        return 'Anchor(file_path={}, context={}, metadata={})'.format(
+        return 'Anchor(file_path="{}", context={}, metadata={})'.format(
             self.file_path, self.context, self.metadata)
 
 
