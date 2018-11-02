@@ -59,8 +59,7 @@ def check_anchor_listing(step, filename, offset):
                                      universal_newlines=True)
     expected = "{}:{} => {{'meta': 'data'}}".format(filename, offset)
 
-    assert output.strip() == expected.strip(
-    ), 'expected: {}, actual: {}'.format(expected, output)
+    assert output.strip().endswith(expected)
 
 
 @step('the repository is valid')

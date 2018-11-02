@@ -12,7 +12,7 @@ from exit_codes import ExitCode
 
 from .anchor import make_anchor
 from .repository import initialize_repository, open_repository
-from .updating import update
+from .updating import AlignmentError, update
 from .validation import validate
 
 
@@ -39,7 +39,8 @@ def list_handler(args):
     """
     repo = open_repository(args['<source-file>'])
     for anchor_id, anchor in repo.items():
-        print("{}:{} => {}".format(
+        print("{} {}:{} => {}".format(
+            anchor_id,
             anchor.file_path.relative_to(repo.root),
             anchor.context.offset,
             anchor.metadata))
@@ -127,8 +128,13 @@ def update_handler(args):
         return ExitCode.DATAERR
 
     for anchor_id, anchor in repo.items():
-        anchor = update(anchor)
-        repo[anchor_id] = anchor
+        try:
+            anchor = update(anchor)
+        except AlignmentError as e:
+            print('Unable to update anchor {}. Reason: {}'.format(
+                anchor_id, e))
+        else:
+            repo[anchor_id] = anchor
 
 
 @dsc.command()
