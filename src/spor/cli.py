@@ -259,7 +259,7 @@ context:
     return ExitCode.OK
 
 
-# TODO: Remove, edit
+# TODO: edit
 
 
 _SIGNAL_EXIT_CODE_BASE = 128
