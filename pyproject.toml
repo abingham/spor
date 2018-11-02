@@ -8,6 +8,10 @@ repository = 'https://github.com/abingham/spor'
 license = "MIT"
 readme = 'README.rst'
 
+packages = [
+    { include = "spor", from = "src" }
+]
+
 [tool.poetry.dependencies]
 python = ">=3.4"
 docopt_subcommands = "^2.3"
