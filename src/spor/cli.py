@@ -46,22 +46,25 @@ def _open_repo(args, path_key='<path>'):
     return repo
 
 
-def _get_anchor(repo, anchor_id):
+def _get_anchor(repo, id_prefix):
     """Get an anchor by ID, or a prefix of its id.
     """
-    anchor = None
-    for anchor_id, a in repo.items():
-        if anchor_id.startswith(anchor_id):
-            if anchor is not None:
+    result = None
+    for anchor_id, anchor in repo.items():
+        if anchor_id.startswith(id_prefix):
+            if result is not None:
                 raise ExitError(
                     ExitCode.DATA_ERR,
                     'Ambiguous ID specification')
 
-            anchor = a
+            result = (anchor_id, anchor)
 
-    if anchor is None:
-        print('No anchor matching ID specification', file=sys.stderr)
-        return ExitCode.DATA_ERRy
+    if result is None:
+        raise ExitError(
+            ExitCode.DATA_ERR,
+            'No anchor matching ID specification')
+
+    return result
 
 
 @dsc.command()
@@ -134,6 +137,19 @@ def add_handler(args):
     return ExitCode.OK
 
 
+def remove_handler(args):
+    """usage: {program} remove <anchor-id> [<path>]
+
+    Remove an existing anchor.
+    """
+
+    repo = _open_repo(args)
+    anchor_id, anchor = _get_anchor(repo, args['<anchor-id>'])
+    del repo[anchor_id]
+
+    return ExitCode.OK
+
+
 def _launch_editor(starting_text=''):
     "Launch editor, let user write text, then return that text."
     # TODO: What is a reasonable default for windows? Does this approach even
@@ -191,13 +207,13 @@ def status_handler(args):
 
 @dsc.command()
 def diff_handler(args):
-    """usage: {program} get_anchor_diff <anchor-id> [<path>]
+    """usage: {program} diff <anchor-id> [<path>]
 
     Show the difference between an anchor and the current state of the source.
     """
 
     repo = _open_repo(args)
-    anchor = _get_anchor(repo, args['<anchor-id>'])
+    anchor_id, anchor = _get_anchor(repo, args['<anchor-id>'])
 
     diff_lines = get_anchor_diff(anchor)
     sys.stdout.writelines(diff_lines)

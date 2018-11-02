@@ -78,3 +78,15 @@ def check_repo_is_invalid(step):
 @step('I update the repository')
 def update_repository(step):
     subprocess.check_call(['spor', 'update'])
+
+
+@step('I delete the anchor for "{filename}" at offset {offset:d}')
+def delete_anchor(step, filename, offset):
+    # TODO
+    pass
+
+
+@step('no anchor for "{filename}" at offset {offset:d} appears in the listing')
+def no_anchor_appears(step, filename, offset):
+    # TODO
+    pass
