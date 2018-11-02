@@ -36,6 +36,8 @@ def update(anchor, handle=None):
     Returns: A new `Anchor`, possibly identical to the input.
 
     Raises:
+        ValueError: No alignments could be found between old anchor and new
+            text.
         AlignmentError: If no anchor could be created. The message of the
             exception will say what the problem is.
 
@@ -58,7 +60,7 @@ def update(anchor, handle=None):
     try:
         alignment = next(alignments)
     except StopIteration:
-        raise ValueError('No alignments for anchor: {}'.format(anchor))
+        raise AlignmentError('No alignments for anchor: {}'.format(anchor))
 
     anchor_offset = ctxt.offset - len(ctxt.before)
 

@@ -42,7 +42,7 @@ class Test_update:
 
         assert updated_anchor == expected_anchor
 
-    def test_raises_ValueError_if_no_alignments(self):
+    def test_raises_AlignmentError_if_no_alignments(self):
         anchor = make_anchor(
             file_path=Path('/source.py'),
             offset=2,
@@ -51,7 +51,7 @@ class Test_update:
             metadata={},
             handle=StringIO("aabbcc"))
 
-        with pytest.raises(ValueError):
+        with pytest.raises(AlignmentError):
             update(anchor, StringIO("xxxxxxx"))
 
     def test_raises_AlignmentError_if_empty_alignment(self):
