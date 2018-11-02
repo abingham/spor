@@ -16,6 +16,54 @@ from .updating import AlignmentError, update
 from .diff import diff
 
 
+class ExitError(Exception):
+    """Exception indicating that the program should exit with a specific code.
+    """
+
+    def __init__(self, code, *args):
+        super().__init__(*args)
+        self.code = code
+
+
+def _open_repo(args, path_key='<path>'):
+    """Open and return the repository containing the specified file.
+
+    The file is specified by looking up `path_key` in `args`. This value or
+    `None` is passed to `open_repository`.
+
+    Returns: A `Repository` instance.
+
+    Raises:
+        ExitError: If there is a problem opening the repo.
+    """
+    path = pathlib.Path(args[path_key]) if args[path_key] else None
+
+    try:
+        repo = open_repository(path)
+    except ValueError as exc:
+        raise ExitError(ExitCode.DATA_ERR, str(exc))
+
+    return repo
+
+
+def _get_anchor(repo, anchor_id):
+    """Get an anchor by ID, or a prefix of its id.
+    """
+    anchor = None
+    for anchor_id, a in repo.items():
+        if anchor_id.startswith(anchor_id):
+            if anchor is not None:
+                raise ExitError(
+                    ExitCode.DATA_ERR,
+                    'Ambiguous ID specification')
+
+            anchor = a
+
+    if anchor is None:
+        print('No anchor matching ID specification', file=sys.stderr)
+        return ExitCode.DATA_ERRy
+
+
 @dsc.command()
 def init_handler(args):
     """usage: {program} init
@@ -62,11 +110,7 @@ def add_handler(args):
         print(exc, file=sys.stderr)
         return ExitCode.DATAERR
 
-    try:
-        repo = open_repository(file_path)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return ExitCode.DATAERR
+    repo = _open_repo(args, '<source-file>')
 
     if sys.stdin.isatty():
         text = _launch_editor('# json metadata')
@@ -113,13 +157,7 @@ def update_handler(args):
 
     Update out of date anchors in the current repository.
     """
-    path = pathlib.Path(args['<path>']) if args['<path>'] else None
-
-    try:
-        repo = open_repository(path)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return ExitCode.DATAERR
+    repo = _open_repo(args)
 
     for anchor_id, anchor in repo.items():
         try:
@@ -138,13 +176,7 @@ def status_handler(args):
     Validate the anchors in the current repository.
     """
 
-    path = pathlib.Path(args['<path>']) if args['<path>'] else None
-
-    try:
-        repo = open_repository(path)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return ExitCode.DATAERR
+    repo = _open_repo(args)
 
     for anchor_id, anchor in repo.items():
         diff_lines = diff(anchor)
@@ -164,19 +196,8 @@ def diff_handler(args):
     Show the difference between an anchor and the current state of the source.
     """
 
-    path = pathlib.Path(args['<path>']) if args['<path>'] else None
-
-    try:
-        repo = open_repository(path)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return ExitCode.DATAERR
-
-    try:
-        anchor = repo[args['<anchor-id>']]
-    except KeyError:
-        print('No anchor with that ID', file=sys.stderr)
-        return ExitCode.DATAERR
+    repo = _open_repo(args)
+    anchor = _get_anchor(repo, args['<anchor-id>'])
 
     diff_lines = diff(anchor)
     sys.stdout.writelines(diff_lines)
@@ -191,25 +212,8 @@ def details_handler(args):
     Get the details of a single anchor.
     """
 
-    path = pathlib.Path(args['<path>']) if args['<path>'] else None
-
-    try:
-        repo = open_repository(path)
-    except ValueError as exc:
-        print(exc, file=sys.stderr)
-        return ExitCode.DATAERR
-
-    anchor = None
-    for anchor_id, a in repo.items():
-        if anchor_id.startswith(args['<anchor-id>']):
-            if anchor is not None:
-                print('Ambiguous ID specification', file=sys.stderr)
-                return ExitCode.DATA_ERR
-            anchor = a
-
-    if anchor is None:
-        print('No anchor matching ID specification', file=sys.stderr)
-        return ExitCode.DATA_ERRy
+    repo = _open_repo(args)
+    anchor = _get_anchor(repo, args['<anchor-id>'])
 
     print("""path: {file_path}
 encoding: {encoding}
@@ -239,6 +243,9 @@ context:
     return ExitCode.OK
 
 
+# TODO: Remove, edit
+
+
 _SIGNAL_EXIT_CODE_BASE = 128
 
 
@@ -258,6 +265,9 @@ def main():
     except PermissionError as exc:
         print(exc, file=sys.stderr)
         return ExitCode.NOPERM
+    except ExitError as exc:
+        print(exc, file=sys.stderr)
+        return exc.code
 
 
 if __name__ == '__main__':
