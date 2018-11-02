@@ -1,7 +1,7 @@
 from hypothesis import given
 import hypothesis.strategies as ST
 
-from spor.validation import _split_keep_sep
+from spor.diff import _split_keep_sep
 
 
 @given(ST.text(), ST.text(min_size=1))

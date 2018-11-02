@@ -64,16 +64,15 @@ def check_anchor_listing(step, filename, offset):
 
 @step('the repository is valid')
 def check_repo_is_valid(step):
-    subprocess.check_call(['spor', 'validate', '--no-print'])
+    output = subprocess.check_output(['spor', 'status'])
+    print(output)
+    assert output == b''
 
 
 @step('the repository is invalid')
 def check_repo_is_invalid(step):
-    try:
-        subprocess.check_call(['spor', 'validate', '--no-print'])
-        assert False, 'validate should fail'
-    except subprocess.CalledProcessError as exc:
-        assert exc.returncode == 1
+    output = subprocess.check_output(['spor', 'status'])
+    assert output != b''
 
 
 @step('I update the repository')

@@ -13,7 +13,7 @@ from exit_codes import ExitCode
 from .anchor import make_anchor
 from .repository import initialize_repository, open_repository
 from .updating import AlignmentError, update
-from .validation import diff
+from .diff import diff
 
 
 @dsc.command()
