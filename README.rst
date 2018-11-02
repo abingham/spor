@@ -39,7 +39,7 @@ this:
 
 You can anchor metadata to line 4 (the function definition) by specifying the starting offset and anchor width like this::
 
-  $ echo "{meta: data}" | spor add example.py 32 12 10
+  $ echo "{\"meta\": \"data\"}" | spor add example.py 32 12 10
 
 .. pull-quote::
 
@@ -53,9 +53,9 @@ This will associate the dictionary ``{meta: data}`` with the code `return x * 2`
 this metadata by using the ``list`` command::
 
   $ spor list example.py
-  example.py:32 => {1: 2}
+  example.py:32 => {'meta': 'data'}
 
-The metadata can be any valid YAML. spor doesn't look at the data at all, so
+The metadata can be any valid JSON. spor doesn't look at the data at all, so
 it's entirely up to you to decide what goes there.
 
 Motivation
