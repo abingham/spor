@@ -11,6 +11,7 @@ readme = 'README.rst'
 [tool.poetry.dependencies]
 python = ">=3.4"
 docopt_subcommands = "^2.3"
+exit_codes = "^1.1"
 
 [tool.poetry.dev-dependencies]
 hypothesis = "^3.79"

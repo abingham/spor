@@ -1,11 +1,18 @@
 import subprocess
 
+from exit_codes import ExitCode
 from radish import step
 
 
 @step('I initialize a repository')
 def init_repo(context):
     subprocess.check_call(['spor', 'init'])
+
+
+@step('reinitializing fails')
+def reinit_repo_fails(context):
+    result = subprocess.call(['spor', 'init'])
+    assert result == ExitCode.DATAERR
 
 
 @step('I create the source file "{filename}"')

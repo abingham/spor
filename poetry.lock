@@ -62,12 +62,20 @@ python-versions = "*"
 version = "1.1.6"
 
 [[package]]
+category = "main"
+description = "Platform-independent exit codes."
+name = "exit-codes"
+optional = false
+python-versions = "*"
+version = "1.1.0"
+
+[[package]]
 category = "dev"
 description = "A platform independent file lock."
 name = "filelock"
 optional = false
 python-versions = "*"
-version = "3.0.9"
+version = "3.0.10"
 
 [[package]]
 category = "dev"
@@ -83,7 +91,7 @@ description = "A library for property based testing"
 name = "hypothesis"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.81.0"
+version = "3.82.1"
 
 [package.dependencies]
 attrs = ">=16.0.0"
@@ -253,11 +261,11 @@ category = "dev"
 description = "Virtual Python Environment builder"
 name = "virtualenv"
 optional = false
-python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*"
-version = "16.0.0"
+python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
+version = "16.1.0"
 
 [metadata]
-content-hash = "1f0201397757522a32588284f5029b99ed58895a6cb42fe5021a2fac5d99c812"
+content-hash = "9a034b2f14913211c011f151aaaf09be3be6f84a9596fd3598cd74f5b0fda303"
 python-versions = ">=3.4"
 
 [metadata.hashes]
@@ -268,9 +276,10 @@ colorful = ["679a6125654732f404c14f2e027e19bc03045a7ed87dccfd24cbe64e390bfef6", 
 docopt = ["49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"]
 docopt-subcommands = ["282384a07ef33ade005cfda65e37d5b43722a689d40f69645367eb38adf1f5c6", "5f4b3f2da6bda71710b8413952f7e4126126b46377ec9a3d85dbb0714e3805e0"]
 enum34 = ["2d81cbbe0e73112bdfe6ef8576f2238f2ba27dd0d55752a776c41d38b7da2850", "644837f692e5f550741432dd3f223bbb9852018674981b1664e5dc339387588a", "6bd0f6ad48ec2aa117d3d141940d484deccda84d4fcd884f5c3d93c23ecd8c79", "8ad8c4783bf61ded74527bffb48ed9b54166685e4230386a9ed9b1279e2df5b1"]
-filelock = ["86fe6af56ae08ebc9c66d54ba3398c35b98916d0862d782b276a65816ff39392", "97694f181bdf58f213cca0a7cb556dc7bf90e2f8eb9aa3151260adac56701afb"]
+exit-codes = ["f1c2d11aeb5e8db35413fc99656ff3abc552e40cdd90486bf810db0277324a25"]
+filelock = ["b8d5ca5ca1c815e1574aee746650ea7301de63d87935b3463d26368b76e31633", "d610c1bb404daf85976d7a82eb2ada120f04671007266b708606565dd03b5be6"]
 humanize = ["a43f57115831ac7c70de098e6ac46ac13be00d69abbf60bdcac251344785bb19"]
-hypothesis = ["b1f0d6f9a18e827ac7a8e9bcc74d6f412ec0d5e8b628909a49e6de76b3aaf018", "ee62108792c928187ba52a962215e65d4852025b190015940b006a02e26de17c", "ee62b786cbcabec4b666754c706b6b7c993dfe20b4d4e1e82ebb11271cef7ec7"]
+hypothesis = ["43cabc87f32adc90fec41cb3f36d96c2e5d564d71f2e60817cd2b23d24c7ad7a", "46eef013dafe09467bc83065ab621b51098a84712ab39399fd15477406807c13", "f33d2e50080e09dcd4e81f939b1d825c6f5b104d89ebad7f57cdd3ea11983680"]
 more-itertools = ["c187a73da93e7a8acc0001572aebc7e3c69daf7bf6881a2cea10650bd4420092", "c476b5d3a34e12d40130bc2f935028b5f636df8f372dc2c1c01dc19681b2039e", "fcbfeaea0be121980e15bc97b3817b5202ca73d0eae185b4550cbfce2a3ebb3d"]
 parse = ["9dd6048ea212cd032a342f9f6aa2b7bc222f7407c7e37bdc2777fecd36897437"]
 pathlib2 = ["8eb170f8d0d61825e09a95b38be068299ddeda82f35e96c3301a8a5e7604cb83", "d1aa2a11ba7b8f7b21ab852b1fb5afb277e1bb99d5dfc663380b5015c0d80c5a"]
@@ -285,4 +294,4 @@ six = ["70e8a77beed4562e7f14fe23a786b54f6296e34344c23bc42f07b15018ff98e9", "832d
 tag-expressions = ["1c0a49c3c0357976822b03c43db8d4a1c5548e16fb07ac939c10bbd5183f529d", "45d2b616495b56778ec54ab5581b9196f4c08eb8dafa3dc54b25e26ba6a37e51"]
 toml = ["229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c", "235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e", "f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"]
 tox = ["513e32fdf2f9e2d583c2f248f47ba9886428c949f068ac54a0469cac55df5862", "75fa30e8329b41b664585f5fb837e23ce1d7e6fa1f7811f2be571c990f9d911b"]
-virtualenv = ["2ce32cd126117ce2c539f0134eb89de91a8413a29baac49cbab3eb50e2026669", "ca07b4c0b54e14a91af9f34d0919790b016923d157afda5efdde55c96718f752"]
+virtualenv = ["686176c23a538ecc56d27ed9d5217abd34644823d6391cbeb232f42bf722baad", "f899fafcd92e1150f40c8215328be38ff24b519cd95357fa6e78e006c7638208"]

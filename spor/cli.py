@@ -8,6 +8,7 @@ import tempfile
 
 import docopt
 import docopt_subcommands as dsc
+from exit_codes import ExitCode
 
 from .anchor import make_anchor
 from .repository import initialize_repository, open_repository
@@ -25,9 +26,9 @@ def init_handler(args):
         initialize_repository(pathlib.Path.cwd())
     except ValueError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_DATAERR
+        return ExitCode.DATAERR
 
-    return os.EX_OK
+    return ExitCode.OK
 
 
 @dsc.command()
@@ -43,7 +44,7 @@ def list_handler(args):
             anchor.context.offset,
             anchor.metadata))
 
-    return os.EX_OK
+    return ExitCode.OK
 
 
 @dsc.command()
@@ -60,13 +61,13 @@ def add_handler(args):
         context_width = int(args['<context-width>'])
     except ValueError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_DATAERR
+        return ExitCode.DATAERR
 
     try:
         repo = open_repository(file_path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_DATAERR
+        return ExitCode.DATAERR
 
     if sys.stdin.isatty():
         text = _launch_editor('# json metadata')
@@ -77,13 +78,13 @@ def add_handler(args):
         metadata = json.loads(text)
     except json.JSONDecodeError:
         print('Failed to create anchor. Invalid JSON metadata.', file=sys.stderr)
-        return os.EX_DATAERR
+        return ExitCode.DATAERR
 
     anchor = make_anchor(file_path, offset, width, context_width, metadata)
 
     repo.add(anchor)
 
-    return os.EX_OK
+    return ExitCode.OK
 
 
 def _launch_editor(starting_text=''):
@@ -115,7 +116,7 @@ def update_handler(args):
         repo = open_repository(path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_DATAERR
+        return ExitCode.DATAERR
 
     for anchor_id, anchor in repo.items():
         anchor = update(anchor)
@@ -134,7 +135,7 @@ def validate_handler(args):
         repo = open_repository(path)
     except ValueError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_DATAERR
+        return ExitCode.DATAERR
 
     invalid = False
     for (file_name, diff) in validate(repo):
@@ -147,7 +148,7 @@ def validate_handler(args):
     if invalid:
         return 1
     else:
-        return os.EX_OK
+        return ExitCode.OK
 
 
 _SIGNAL_EXIT_CODE_BASE = 128
@@ -162,13 +163,13 @@ def main():
         return dsc.main(program='spor', version='spor v0.0.0')
     except docopt.DocoptExit as exc:
         print(exc, file=sys.stderr)
-        return os.EX_USAGE
+        return ExitCode.USAGE
     except FileNotFoundError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_NOINPUT
+        return ExitCode.NOINPUT
     except PermissionError as exc:
         print(exc, file=sys.stderr)
-        return os.EX_NOPERM
+        return ExitCode.NOPERM
 
 
 if __name__ == '__main__':
