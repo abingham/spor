@@ -159,6 +159,61 @@ def validate_handler(args):
         return ExitCode.OK
 
 
+@dsc.command()
+def details_handler(args):
+    """usage: {program} details <anchor-id> [<path>]
+
+    Get the details of a single anchor.
+    """
+
+    path = pathlib.Path(args['<path>']) if args['<path>'] else None
+
+    try:
+        repo = open_repository(path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return ExitCode.DATAERR
+
+    anchor = None
+    for anchor_id, a in repo.items():
+        if anchor_id.startswith(args['<anchor-id>']):
+            if anchor is not None:
+                print('Ambiguous ID specification', file=sys.stderr)
+                return ExitCode.DATA_ERR
+            anchor = a
+
+    if anchor is None:
+        print('No anchor matching ID specification', file=sys.stderr)
+        return ExitCode.DATA_ERR
+
+    print("""path: {file_path}
+encoding: {encoding}
+context:
+    before:
+    {before}
+    --------------
+
+    topic:
+    {topic}
+    --------------
+
+    after:
+    {after}
+    --------------
+
+    offset: {offset}
+    width: {width}""".format(
+        file_path=anchor.file_path,
+        encoding=anchor.encoding,
+        before=anchor.context.before,
+        topic=anchor.context.topic,
+        after=anchor.context.after,
+        offset=anchor.context.offset,
+        width=anchor.context.width))
+
+    return ExitCode.OK
+
+
 _SIGNAL_EXIT_CODE_BASE = 128
 
 
