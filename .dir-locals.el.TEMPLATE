@@ -1,0 +1,5 @@
+((nil . ((projectile-project-test-cmd . "tox -e py36")
+         (projectile-projest-run-cmd . "spor")
+         (eval . (unless (and (boundp 'pyvenv-virtual-env-name)
+                              (equal pyvenv-virtual-env-name "spor"))
+                   (pyvenv-workon "spor"))))))
