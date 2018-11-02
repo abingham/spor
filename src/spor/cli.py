@@ -13,7 +13,7 @@ from exit_codes import ExitCode
 from .anchor import make_anchor
 from .repository import initialize_repository, open_repository
 from .updating import AlignmentError, update
-from .validation import validate
+from .validation import diff
 
 
 @dsc.command()
@@ -39,11 +39,9 @@ def list_handler(args):
     """
     repo = open_repository(args['<source-file>'])
     for anchor_id, anchor in repo.items():
-        print("{} {}:{} => {}".format(
-            anchor_id,
-            anchor.file_path.relative_to(repo.root),
-            anchor.context.offset,
-            anchor.metadata))
+        print("{} {}:{} => {}".format(anchor_id,
+                                      anchor.file_path.relative_to(repo.root),
+                                      anchor.context.offset, anchor.metadata))
 
     return ExitCode.OK
 
@@ -78,18 +76,14 @@ def add_handler(args):
     try:
         metadata = json.loads(text)
     except json.JSONDecodeError:
-        print('Failed to create anchor. Invalid JSON metadata.', file=sys.stderr)
+        print(
+            'Failed to create anchor. Invalid JSON metadata.', file=sys.stderr)
         return ExitCode.DATAERR
 
     # TODO: let user specify encoding
     with file_path.open(mode='rt') as handle:
         anchor = make_anchor(
-            file_path,
-            offset,
-            width,
-            context_width,
-            metadata,
-            handle=handle)
+            file_path, offset, width, context_width, metadata, handle=handle)
 
     repo.add(anchor)
 
@@ -138,12 +132,13 @@ def update_handler(args):
 
 
 @dsc.command()
-def validate_handler(args):
-    """usage: {program} validate [--no-print] [<path>]
+def status_handler(args):
+    """usage: {program} status [<path>]
 
-    Validate the anchors in the current repository."""
+    Validate the anchors in the current repository.
+    """
+
     path = pathlib.Path(args['<path>']) if args['<path>'] else None
-    do_print = not args['--no-print']
 
     try:
         repo = open_repository(path)
@@ -151,18 +146,42 @@ def validate_handler(args):
         print(exc, file=sys.stderr)
         return ExitCode.DATAERR
 
-    invalid = False
-    for (file_name, diff) in validate(repo):
-        invalid = True
-        if do_print:
-            print('= MISMATCH =')
-            print(file_name)
-            sys.stdout.writelines(diff)
+    for anchor_id, anchor in repo.items():
+        diff_lines = diff(anchor)
+        if diff_lines:
+            print('{} {}:{} out-of-date'.format(
+                anchor_id,
+                anchor.file_path,
+                anchor.context.offset))
 
-    if invalid:
-        return 1
-    else:
-        return ExitCode.OK
+    return ExitCode.OK
+
+
+@dsc.command()
+def diff_handler(args):
+    """usage: {program} diff <anchor-id> [<path>]
+
+    Show the difference between an anchor and the current state of the source.
+    """
+
+    path = pathlib.Path(args['<path>']) if args['<path>'] else None
+
+    try:
+        repo = open_repository(path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return ExitCode.DATAERR
+
+    try:
+        anchor = repo[args['<anchor-id>']]
+    except KeyError:
+        print('No anchor with that ID', file=sys.stderr)
+        return ExitCode.DATAERR
+
+    diff_lines = diff(anchor)
+    sys.stdout.writelines(diff_lines)
+
+    return ExitCode.OK
 
 
 @dsc.command()
@@ -190,7 +209,7 @@ def details_handler(args):
 
     if anchor is None:
         print('No anchor matching ID specification', file=sys.stderr)
-        return ExitCode.DATA_ERR
+        return ExitCode.DATA_ERRy
 
     print("""path: {file_path}
 encoding: {encoding}

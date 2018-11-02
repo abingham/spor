@@ -20,27 +20,26 @@ def _context_diff(file_name, c1, c2):
         tofile='{} [current]'.format(file_name))
 
 
-def validate(repo):
-    for (anchor_id, anchor) in repo.items():
-        # TODO: Account for the fact that this can raise a ValueError if it
-        # can't read the specified topic.
-        new_anchor = make_anchor(
-            file_path=anchor.file_path,
-            offset=anchor.context.offset,
-            width=len(anchor.context.topic),
-            context_width=anchor.context.width,
-            metadata=anchor.metadata)
+def diff(anchor):
+    """Get the diff between an anchor and the current state of its source.
 
-        assert anchor.file_path == new_anchor.file_path
-        assert anchor.context.offset == new_anchor.context.offset
-        assert len(anchor.context.topic) == len(new_anchor.context.topic)
-        assert anchor.metadata == new_anchor.metadata
+    Returns: A tuple of diff lines. If there is not different, then this
+        returns an empty tuple.
+    """
+    new_anchor = make_anchor(
+        file_path=anchor.file_path,
+        offset=anchor.context.offset,
+        width=len(anchor.context.topic),
+        context_width=anchor.context.width,
+        metadata=anchor.metadata)
 
-        diff = tuple(
-            _context_diff(
-                str(repo.root / anchor.file_path),
-                anchor.context,
-                new_anchor.context))
+    assert anchor.file_path == new_anchor.file_path
+    assert anchor.context.offset == new_anchor.context.offset
+    assert len(anchor.context.topic) == len(new_anchor.context.topic)
+    assert anchor.metadata == new_anchor.metadata
 
-        if diff:
-            yield (anchor.file_path, diff)
+    return tuple(
+        _context_diff(
+            anchor.file_path,
+            anchor.context,
+            new_anchor.context))
