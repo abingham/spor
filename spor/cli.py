@@ -80,7 +80,15 @@ def add_handler(args):
         print('Failed to create anchor. Invalid JSON metadata.', file=sys.stderr)
         return ExitCode.DATAERR
 
-    anchor = make_anchor(file_path, offset, width, context_width, metadata)
+    # TODO: let user specify encoding
+    with file_path.open(mode='rt') as handle:
+        anchor = make_anchor(
+            file_path,
+            offset,
+            width,
+            context_width,
+            metadata,
+            handle=handle)
 
     repo.add(anchor)
 

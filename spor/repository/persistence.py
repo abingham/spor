@@ -18,8 +18,8 @@ def make_encoder(repo_root):
                 return {
                     '!spor_anchor': {
                         'file_path': str(obj.file_path.relative_to(repo_root)),
+                        'encoding': obj.encoding,
                         'context': obj.context,
-                        'context_width': obj.context_width,
                         'metadata': obj.metadata
                     }
                 }
@@ -29,7 +29,8 @@ def make_encoder(repo_root):
                         'before': obj.before,
                         'after': obj.after,
                         'topic': obj.topic,
-                        'offset': obj.offset
+                        'offset': obj.offset,
+                        'width': obj.width
                     }
                 }
 
@@ -48,8 +49,8 @@ def make_decoder(repo_root):
                 data = dct['!spor_anchor']
                 return spor.anchor.Anchor(
                     file_path=repo_root / data['file_path'],
+                    encoding=data['encoding'],
                     context=data['context'],
-                    context_width=data['context_width'],
                     metadata=data['metadata'])
 
             elif '!spor_context' in dct:

@@ -72,5 +72,5 @@ def update(anchor):
         file_path=anchor.file_path,
         offset=source_indices[0],
         width=len(source_indices),
-        context_width=anchor.context_width,
+        context_width=anchor.context.width,
         metadata=anchor.metadata)

@@ -1,3 +1,4 @@
+from io import StringIO
 import pytest
 
 from spor.anchor import make_anchor
@@ -37,14 +38,13 @@ def test_create_repo_with_no_repo_raises_ValueError(tmpdir_path, excursion):
 
 def test_add_anchor_generates_correct_anchor(repo):
     source_path = repo.root / "source.py"
-    with source_path.open(mode='wt') as handle:
-        handle.write('abcdefgh')
 
     metadata = {"1": 2}
 
     anchor_id = repo.add(
         make_anchor(
             file_path=source_path,
+            handle=StringIO('abcdefgh'),
             offset=3,
             width=3,
             context_width=2,
@@ -53,7 +53,7 @@ def test_add_anchor_generates_correct_anchor(repo):
     anchor = repo[anchor_id]
     assert anchor.file_path == source_path
     assert anchor.metadata == metadata
-    assert anchor.context_width == 2
+    assert anchor.context.width == 2
     assert anchor.context.before == 'bc'
     assert anchor.context.topic == 'def'
     assert anchor.context.offset == 3
@@ -62,14 +62,13 @@ def test_add_anchor_generates_correct_anchor(repo):
 
 def test_get_anchor_by_id(repo):
     source_path = repo.root / "source.py"
-    with source_path.open(mode='wt') as handle:
-        handle.write('# nothing')
 
     metadata = {"1": 2}
     anchor_id = repo.add(
         make_anchor(
             metadata=metadata,
             file_path=source_path,
+            handle=StringIO('# nothing'),
             offset=3,
             width=3,
             context_width=2))
@@ -84,13 +83,12 @@ def test_get_non_existent_anchor_raises_KeyError(repo):
 
 def test_update_updates_metadata(repo):
     source_path = repo.root / "source.py"
-    with source_path.open(mode='wt') as handle:
-        handle.write('# nothing')
 
     anchor_id = repo.add(
         make_anchor(
             metadata={},
             file_path=source_path,
+            handle=StringIO("# nothing"),
             offset=3,
             width=3,
             context_width=2))
