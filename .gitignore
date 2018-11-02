@@ -7,3 +7,5 @@ build
 .hypothesis
 .tox
 .python-version
+.dir-locals.el
+.vscode
