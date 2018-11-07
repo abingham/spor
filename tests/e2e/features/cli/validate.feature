@@ -5,10 +5,10 @@ Feature: Repository CLI operations
     And I create the source file "source.py"
 
   Scenario: Validate unchanged source
-    When I create a new anchor for "source.py" at offset 3
+    When I create an anchor for "source.py" at offset 3
     Then the repository is valid
 
   Scenario: Validate modified source
-    When I create a new anchor for "source.py" at offset 3
+    When I create an anchor for "source.py" at offset 3
     When I modify "source.py"
     Then the repository is invalid

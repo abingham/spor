@@ -9,7 +9,7 @@ def init_repo(context):
     subprocess.check_call(['spor', 'init'])
 
 
-@step('reinitializing fails')
+@step('reinitializing the repository fails')
 def reinit_repo_fails(context):
     result = subprocess.call(['spor', 'init'])
     assert result == ExitCode.DATAERR
@@ -42,24 +42,52 @@ def check_repo_exists(step):
     assert (step.context.repo_path / ".spor").exists()
 
 
-@step('I create a new anchor for "{filename}" at offset {offset:d}')
-def create_anchor(step, filename, offset):
-    proc = subprocess.Popen(['spor', 'add', filename,
-                             str(offset), "3", "1"],
+def spor_add(filename, offset, width, context_width):
+    proc = subprocess.Popen(['spor', 'add',
+                             filename,
+                             str(offset),
+                             str(width),
+                             str(context_width)],
                             universal_newlines=True,
                             stdin=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
                             stdout=subprocess.PIPE)
-    output, output_err = proc.communicate(input='{"meta": "data"}')
-    assert output_err is None
+    return proc, proc.communicate(input='{"meta": "data"}')
+
+
+@step('I create an anchor for "{filename}" at offset {offset:d}')
+def create_anchor(step, filename, offset):
+    proc, (output, output_err) = spor_add(filename, offset, 3, 1)
+
+    msg = "stderr should be empty, not {}".format(output_err)
+    assert output_err == '', msg
+
+
+@step('I can not create an anchor for "{filename}"')
+def unable_to_create_anchor(step, filename):
+    proc, (output, output_err) = spor_add(filename, 3, 3, 1)
+    retcode = proc.wait()
+
+    msg = "err is {}, not {}".format(retcode, ExitCode.DATAERR)
+    assert retcode == ExitCode.NOINPUT, msg
 
 
 @step('an anchor for "{filename}" at offset {offset:d} appears in the listing')
 def check_anchor_listing(step, filename, offset):
-    output = subprocess.check_output(['spor', 'list', 'source.py'],
+    output = subprocess.check_output(['spor', 'list'],
                                      universal_newlines=True)
     expected = "{}:{} => {{'meta': 'data'}}".format(filename, offset)
 
-    assert output.strip().endswith(expected)
+    lines = output.split('\n')
+    assert any(line.strip().endswith(expected) for line in lines)
+
+
+@step('the repository has {count:d} anchor')
+def count_anchors(step, count):
+    output = subprocess.check_output(['spor', 'list'],
+                                     universal_newlines=True)
+    lines = output.split('\n')
+    assert len(lines) == count + 1
 
 
 @step('the repository is valid')

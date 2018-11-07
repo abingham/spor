@@ -6,4 +6,8 @@ Feature: Initializing a repository
 
   Scenario: Repository already exists
     Given I initialize a repository
-    Then reinitializing fails
+    Then reinitializing the repository fails
+
+  Scenario: Repository is initially empty
+    Given I initialize a repository
+    Then the repository has 0 anchors
