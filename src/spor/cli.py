@@ -137,6 +137,7 @@ def add_handler(args):
     return ExitCode.OK
 
 
+@dsc.command()
 def remove_handler(args):
     """usage: {program} remove <anchor-id> [<path>]
 
