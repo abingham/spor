@@ -231,25 +231,25 @@ def details_handler(args):
     """
 
     repo = _open_repo(args)
-    anchor = _get_anchor(repo, args['<anchor-id>'])
+    _, anchor = _get_anchor(repo, args['<anchor-id>'])
 
     print("""path: {file_path}
 encoding: {encoding}
-context:
-    before:
-    {before}
-    --------------
 
-    topic:
-    {topic}
-    --------------
+[before]
+{before}
+--------------
 
-    after:
-    {after}
-    --------------
+[topic]
+{topic}
+--------------
 
-    offset: {offset}
-    width: {width}""".format(
+[after]
+{after}
+--------------
+
+offset: {offset}
+width: {width}""".format(
         file_path=anchor.file_path,
         encoding=anchor.encoding,
         before=anchor.context.before,
