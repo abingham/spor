@@ -14,6 +14,7 @@ from .anchor import make_anchor
 from .repository import initialize_repository, open_repository
 from .updating import AlignmentError, update
 from .diff import get_anchor_diff
+import spor.version
 
 
 class ExitError(Exception):
@@ -272,7 +273,7 @@ def main():
         lambda *args: sys.exit(_SIGNAL_EXIT_CODE_BASE + signal.SIGINT))
 
     try:
-        return dsc.main(program='spor', version='spor v0.0.0')
+        return dsc.main(program='spor', version='spor v{}'.format(spor.version.__version__))
     except docopt.DocoptExit as exc:
         print(exc, file=sys.stderr)
         return ExitCode.USAGE
