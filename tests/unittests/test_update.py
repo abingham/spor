@@ -7,17 +7,16 @@ from spor.updating import AlignmentError, update
 
 
 # These are the "accepted" update results. See tests below to see how they're used.
-ACCEPTED = {
-    (2, 2, 2, 'aabbcc'): (2, 2, 2, 'aabBbcc'),
-    (2, 2, 2, 'aabbcc'): (3, 2, 2, 'aaBbbcc'),
-    (2, 2, 2, 'aabbcc'): (2, 2, 2, 'aabbBcc'),
-}
+ACCEPTED = (
+    ((2, 2, 2, 'aabbcc'), (2, 2, 2, 'aabBbcc')),
+    ((2, 2, 2, 'aabbcc'), (3, 2, 2, 'aaBbbcc')),
+    ((2, 2, 2, 'aabbcc'), (2, 2, 2, 'aabbBcc')),
+)
 
 
 class Test_update:
 
-    @pytest.mark.parametrize("pre, post",
-                             list(ACCEPTED.items()))
+    @pytest.mark.parametrize("pre, post", ACCEPTED)
     def test_acceptance(self, pre, post):
         offset, width, context_width, text = pre
         anchor = make_anchor(
