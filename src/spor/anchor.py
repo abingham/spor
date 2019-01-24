@@ -1,11 +1,53 @@
+"""The data structures for anchoring.
+
+Anchors are at the heart of spor. They associate a range of source code in some
+file with some metadata. An anchor is defined by two elements:
+
+    1. An offset into a file.
+    2. The width of the anchor.
+
+These tell you what the anchor applies to or refers to. Beyond that, though, the
+anchor tracks what the anchored region and the regions around it looked like
+when the anchor was created. This is important so that we can detect when the
+anchor is out of date.
+"""
 from contextlib import contextmanager
 import pathlib
 
 
 class Context:
+    """A region inside a file along with bracketing text.
+
+    A Context defines what part of a file an anchor refers to, and it keeps
+    track of the text before, in, and after the anchored region. The *topic* of
+    an context is the text addressed by the anchor. The *before* is the text
+    before the topic, and *after* is the text after it. It looks like this:
+
+        Text before the anchor text in the topic text after the anchor.
+               <--- before ---><-- topic ------><--- after --->
+
+    Here, the topic is "text in the topic". The before is "fore the anchor ",
+    and after is " text after the".    
+
+    Contexts also have a nominal *width* which is the ideal size of the before
+    and after text. When a Context is created, the user may request a specific
+    width, but there may not be sufficient characters in the source code to
+    create a before or after chunk of that size. For example, if the topic ends
+    3 characters from the end of the file and the user requests a width of 10,
+    the after chunk will be only three characters wide while the width will be
+    10. If the file changes and the anchor is recalculate, it may that there are
+    enough characters to fill out a full 10-width after chunk. So width is
+    nominal or prescribed.
+    """
     def __init__(self, offset, topic, before, after, width):
         if offset < 0:
             raise ValueError("Context offset {} is less than 0".format(offset))
+
+        if len(before) > width:
+            raise ValueError('before text cannot be larger than width ({})'.format(width))
+
+        if len(after) > width:
+            raise ValueError('after text cannot be larger than width ({})'.format(width))
 
         self._before = before
         self._offset = offset
@@ -35,7 +77,12 @@ class Context:
 
     @property
     def width(self):
-        "The nominal width of the context."
+        """The nominal width of the context.
+
+        Width means how many characters/codepoints should ideally be in the
+        `before` and `after` chunks. These chunks may be smaller than `width` if
+        there aren't enough characters in the source to fill them.
+        """
         return self._width
 
     @property
@@ -58,6 +105,17 @@ class Context:
 
 
 class Anchor:
+    """Metadata associated with a specific range of text in a file.
+
+    Anchors let you attach metadata to pieces of text without needing to modify
+    the text itself.
+
+    Args:
+        file_path: The path to the file being anchored.
+        encoding: The encoding of the file being anchored.
+        context: The `Context` of the anchor (i.e. its location)
+        metadata: The JSON-serializable data of the anchor.
+    """
     def __init__(self, file_path, encoding, context, metadata):
         if not file_path.is_absolute():
             raise ValueError("Anchors file-paths must be absolute.")
