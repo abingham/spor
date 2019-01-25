@@ -9,3 +9,5 @@ build
 .python-version
 .dir-locals.el
 .vscode
+pip-wheel-metadata
+.pytest_cache
