@@ -32,7 +32,7 @@ def test_matrices_must_have_non_negative_dimensions(rows, cols):
         Matrix(rows, cols)
 
 
-@given(ST.integers(max_value=1000000000),
+@given(ST.integers(min_value=0, max_value=1000000000),
        matrix_and_indices())
 def test_matrix_remembers_values(value, m_and_i):
     matrix, row, col = m_and_i

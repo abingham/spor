@@ -21,7 +21,7 @@ def overflow_width(draw):
 def past_end_of_file(draw):
     text_size = draw(ST.integers(min_value=1, max_value=10))
     text = draw(ST.text(min_size=text_size, max_size=text_size))
-    offset = draw(ST.integers(min_value=text_size + 1))
+    offset = draw(ST.integers(min_value=text_size + 1, max_value=text_size + 1000))
     width = 1
     return (text, offset, width)
 
