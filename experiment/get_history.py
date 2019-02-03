@@ -6,6 +6,7 @@ import math
 from pathlib import Path
 import sys
 
+import docopt
 from git import Repo
 
 
@@ -16,15 +17,12 @@ def obj_from_path(tree, path):
     return obj
 
 
-def main(argv=None):
-    if argv is None:
-        argv = sys.argv
+def main():
+    args = docopt.docopt(__doc__)
+    repo_path = Path(args['<repo-path>'])
+    file_path = Path(args['<file-path>']).relative_to(repo_path)
 
-    repo_path = Path(argv[1])
-
-    file_path = Path(argv[2]).relative_to(repo_path)
-
-    output_dir = Path(argv[3])
+    output_dir = Path(args['<output-dir>'])
     output_dir.mkdir()
 
     repo = Repo(repo_path)
