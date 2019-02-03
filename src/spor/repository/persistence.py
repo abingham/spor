@@ -1,61 +1,43 @@
-import json
+import yaml
 
 import spor.anchor
 
 
 def save_anchor(fp, anchor, repo_root):
-    json.dump(anchor, fp, cls=make_encoder(repo_root))
+    d = {
+        'file_path': str(anchor.file_path.relative_to(repo_root)),
+        'encoding': anchor.encoding,
+        'context': _save_context(anchor.context),
+        'metadata': anchor.metadata
+    }
+    
+    yaml.dump(d, fp)
 
 
 def load_anchor(fp, repo_root):
-    return json.load(fp, cls=make_decoder(repo_root))
+    d = yaml.load(fp)
+    context = _load_context(d['context'])
+    return spor.anchor.Anchor(
+        file_path=repo_root / d['file_path'],
+        encoding=d['encoding'],
+        context=context,
+        metadata=d['metadata'])
 
 
-def make_encoder(repo_root):
-    class JSONEncoder(json.JSONEncoder):
-        def default(self, obj):
-            if isinstance(obj, spor.anchor.Anchor):
-                return {
-                    '!spor_anchor': {
-                        'file_path': str(obj.file_path.relative_to(repo_root)),
-                        'encoding': obj.encoding,
-                        'context': obj.context,
-                        'metadata': obj.metadata
-                    }
-                }
-            elif isinstance(obj, spor.anchor.Context):
-                return {
-                    '!spor_context': {
-                        'before': obj.before,
-                        'after': obj.after,
-                        'topic': obj.topic,
-                        'offset': obj.offset,
-                        'width': obj.width
-                    }
-                }
-
-            return super().default(self, obj)
-
-    return JSONEncoder
+def _save_context(context):
+    return {
+        'before': context.before,
+        'offset': context.offset,
+        'topic': context.topic,
+        'after': context.after,
+        'width': context.width
+    }
 
 
-def make_decoder(repo_root):
-    class JSONDecoder(json.JSONDecoder):
-        def __init__(self):
-            super().__init__(object_hook=self.anchor_decoder)
-
-        def anchor_decoder(self, dct):
-            if '!spor_anchor' in dct:
-                data = dct['!spor_anchor']
-                return spor.anchor.Anchor(
-                    file_path=repo_root / data['file_path'],
-                    encoding=data['encoding'],
-                    context=data['context'],
-                    metadata=data['metadata'])
-
-            elif '!spor_context' in dct:
-                return spor.anchor.Context(**dct['!spor_context'])
-
-            return dct
-
-    return JSONDecoder
+def _load_context(d):
+    return spor.anchor.Context(
+        offset=d['offset'],
+        topic=d['topic'],
+        before=d['before'],
+        after=d['after'],
+        width=d['width'])
