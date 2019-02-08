@@ -209,7 +209,7 @@ def status_handler(args):
 
 @dsc.command()
 def diff_handler(args):
-    """usage: {program} diff <anchor-id> [<path>]
+    """usage: {program} diff <anchor-id>
 
     Show the difference between an anchor and the current state of the source.
     """
