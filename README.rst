@@ -4,6 +4,10 @@
  spor
 ======
 
+**NB:** This Python implementation of spor has been superseded by a `Rust
+implementation <https://github.com/abingham/rust_spor>`_. This version might be
+kept compatible with the Rust version, but don't count on it for now.
+
 A system for anchoring metadata in external files to source code.
 
 spor lets you define metadata for elements of your source code. The
