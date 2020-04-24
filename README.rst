@@ -4,10 +4,6 @@
  spor
 ======
 
-**NB:** This Python implementation of spor has been superseded by a `Rust
-implementation <https://github.com/abingham/rust_spor>`_. This version might be
-kept compatible with the Rust version, but don't count on it for now.
-
 A system for anchoring metadata in external files to source code.
 
 spor lets you define metadata for elements of your source code. The
@@ -20,10 +16,6 @@ know when they become unmanageably out of sync).
 
 Quickstart
 ==========
-
-Spor is written in Rust, so you can build it with cargo::
-
-  $ cargo build
 
 Before you can use spor to anchor metadata to files, you need to initialize a
 repository with the ``init`` command::
@@ -112,5 +104,5 @@ need to pay attention to:
 
 - Bielikova, Maria. `"Metadata Anchoring for Source Code: Robust Location Descriptor Definition, Building and Interpreting" <https://www.researchgate.net/profile/Maria\_Bielikova/publication/259892218\_Metadata\_Anchoring\_for\_Source\_Code\_Robust\_Location\_Descriptor\_Definition\_Building\_and\_Interpreting/links/560478cb08aeb5718ff00039.pdf>`__
 
-.. |Build Status| image:: https://travis-ci.org/abingham/spor.png?branch=master
-   :target: https://travis-ci.org/abingham/spor
+.. |Build Status| image:: https://travis-ci.org/abingham/rust_spor.png?branch=master
+   :target: https://travis-ci.org/abingham/rust_spor
