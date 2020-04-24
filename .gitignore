@@ -1,13 +1,4 @@
-__pycache__
-dist
-build
-*.egg-info
-.csearchindex
-.cache
-.hypothesis
-.tox
-.python-version
-.dir-locals.el
+/target
+**/*.rs.bk
+sandbox
 .vscode
-pip-wheel-metadata
-.pytest_cache
