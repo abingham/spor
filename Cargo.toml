@@ -3,6 +3,10 @@ name = "spor"
 version = "0.2.0"
 authors = ["Austin Bingham <austin.bingham@gmail.com>"]
 edition = "2018"
+description = "Anchored metadata"
+license-file = "LICENSE.txt"
+homepage = "https://github.com/abingham/spor"
+repository = "https://github.com/abingham/spor"
 
 [dependencies]
 async-std = "1.5.0"
