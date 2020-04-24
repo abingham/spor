@@ -17,6 +17,10 @@ know when they become unmanageably out of sync).
 Quickstart
 ==========
 
+Spor is written in rust, so you build it with ``cargo``::
+
+  $ cargo build
+
 Before you can use spor to anchor metadata to files, you need to initialize a
 repository with the ``init`` command::
 
