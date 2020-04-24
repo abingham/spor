@@ -1,4 +1,4 @@
-|Python version| |Build Status|
+|Build Status|
 
 ======
  spor
@@ -20,6 +20,10 @@ know when they become unmanageably out of sync).
 
 Quickstart
 ==========
+
+Spor is written in Rust, so you can build it with cargo::
+
+  $ cargo build
 
 Before you can use spor to anchor metadata to files, you need to initialize a
 repository with the ``init`` command::
@@ -59,7 +63,7 @@ this metadata by using the ``list`` command::
   $ spor list example.py
   example.py:32 => {'meta': 'data'}
 
-The metadata can be any valid JSON. spor doesn't look at the data at all, so
+The metadata can be any valid YAML. spor doesn't look at the data at all, so
 it's entirely up to you to decide what goes there.
 
 Motivation
@@ -93,36 +97,12 @@ going to try to keep it simple and explicit at first.
 Ideally spor will work on any programming language (and, really, any
 text document), though its initial target will be Python source code.
 
-Development
-===========
-
-Spor is new and small enough that we do fun things like try out new tools.
-Instead of `setuptools` et al., we're using `poetry
-<https://github.com/sdispater/poetry>`__. So if you want to contribute to spor,
-the first thing you need to do is to `install poetry
-<https://github.com/sdispater/poetry#installation>`__.
-
-To install the package, use::
-
-  poetry install
-
 Tests
------
+=====
 
-The installation command above will install all of the test dependencies as
-well. To run all of the tests, run |tox|_:
+Use `cargo` to run the tests::
 
-.. code-block::
-
-  tox
-
-To run just the `pytests` unit tests, run::
-
-  poetry run pytest tests/unittests
-
-To run the `radish` tests, run::
-
-  poetry run radish tests/e2e/features -b tests/e2e/radish
+  $ cargo test
 
 Notes
 =====
@@ -132,9 +112,5 @@ need to pay attention to:
 
 - Bielikova, Maria. `"Metadata Anchoring for Source Code: Robust Location Descriptor Definition, Building and Interpreting" <https://www.researchgate.net/profile/Maria\_Bielikova/publication/259892218\_Metadata\_Anchoring\_for\_Source\_Code\_Robust\_Location\_Descriptor\_Definition\_Building\_and\_Interpreting/links/560478cb08aeb5718ff00039.pdf>`__
 
-.. |Python version| image:: https://img.shields.io/badge/Python_version-3.4+-blue.svg
-   :target: https://www.python.org/
 .. |Build Status| image:: https://travis-ci.org/abingham/spor.png?branch=master
    :target: https://travis-ci.org/abingham/spor
-.. |tox| replace:: ``tox``
-.. _tox: https://tox.readthedocs.io/en/latest/

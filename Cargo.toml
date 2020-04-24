@@ -1,0 +1,33 @@
+[package]
+name = "spor"
+version = "0.2.0"
+authors = ["Austin Bingham <austin.bingham@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+async-std = "1.5.0"
+async-trait = "0.1.30"
+diff = "0.1.11"
+docopt = "1"
+encoding = "0.2"
+exit-code = "1.0.0"
+futures = "0.3"
+glob = "0.2"
+log = "0.4"
+ndarray = "0.12.0"
+ordered-float = "1.0.1"
+serde = {version = "1.0", features = ["derive"]}
+serde_json = "1.0"
+serde_yaml = "0.8"
+simple_logger = "1.6.0"
+uuid = { version = "0.7", features = ["v4"] }
+yaml-rust = "0.4"
+
+[[test]]
+name = "cucumber"
+path = "tests/e2e/cucumber.rs"
+harness = false
+
+[dev-dependencies]
+cucumber_rust = { version = "^0.5.1", default-features = false }
+tempdir = "0.3"
