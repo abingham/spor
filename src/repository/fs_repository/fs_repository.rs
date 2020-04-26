@@ -118,7 +118,7 @@ pub async fn initialize(path: &Path, spor_dir: Option<&Path>) -> io::Result<()> 
 ///
 /// Returns: The dominating directory containing `spor_dir`.
 fn find_root_dir(path: &Path, spor_dir: &Path) -> io::Result<PathBuf> {
-    PathBuf::from(path)
+    let ancestor = PathBuf::from(path)
         .canonicalize()
         .map(|p| {
             p.ancestors()
@@ -133,7 +133,11 @@ fn find_root_dir(path: &Path, spor_dir: &Path) -> io::Result<PathBuf> {
                     }
                 })
                 .next()
-        })
-        .map(|a| PathBuf::from(a.unwrap()))
+        })?;
+
+        match ancestor {
+            None => Err(io::Error::new(io::ErrorKind::NotFound, "Unable to find root directory")),
+            Some(path) => Ok(path)
+        }
 }
 
