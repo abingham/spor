@@ -77,7 +77,7 @@ impl Context {
     }
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Anchor {
     file_path: PathBuf,
     encoding: String,
