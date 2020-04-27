@@ -6,22 +6,22 @@ use crate::anchor::Anchor;
 
 use crate::repository::AnchorId;
 
-impl<'a> IntoIterator for &'a FSRepository {
-    type Item = <RepositoryIterator<'a> as Iterator>::Item;
-    type IntoIter = RepositoryIterator<'a>;
+impl IntoIterator for &FSRepository {
+    type Item = <RepositoryIterator as Iterator>::Item;
+    type IntoIter = RepositoryIterator;
 
     fn into_iter(self) -> Self::IntoIter {
         RepositoryIterator::new(&self.spor_dir(), &self.root)
     }
 }
 
-pub struct RepositoryIterator<'a> {
-    repo_root: &'a Path,
+pub struct RepositoryIterator {
+    repo_root: PathBuf,
     anchor_files: Vec<(AnchorId, PathBuf)>,
 }
 
-impl<'a> RepositoryIterator<'a> {
-    pub fn new(spor_dir: &PathBuf, repo_root: &'a Path) -> RepositoryIterator<'a> {
+impl RepositoryIterator {
+    pub fn new(spor_dir: &Path, repo_root: &Path) -> RepositoryIterator {
         let glob_path = spor_dir.join("**/*.yml");
 
         let pattern = glob_path
@@ -42,7 +42,7 @@ impl<'a> RepositoryIterator<'a> {
             .collect();
 
         RepositoryIterator {
-            repo_root: repo_root,
+            repo_root: repo_root.to_owned(),
             anchor_files: matches,
         }
     }
@@ -51,7 +51,7 @@ impl<'a> RepositoryIterator<'a> {
 // TODO: What about a Stream of anchors? Isn't that the right thing to do in
 // async land?
 
-impl<'a> Iterator for RepositoryIterator<'a> {
+impl Iterator for RepositoryIterator {
     type Item = (AnchorId, Anchor);
 
     fn next(&mut self) -> Option<Self::Item> {
