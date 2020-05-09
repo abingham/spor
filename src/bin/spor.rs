@@ -6,12 +6,12 @@ use std::iter::FromIterator;
 use std::path::PathBuf;
 
 use docopt::Docopt;
+use spor;
 use spor::alignment::smith_waterman::SimpleScorer;
 use spor::alignment::smith_waterman::SmithWaterman;
 use spor::anchor::{Anchor, Context};
 use spor::diff::get_anchor_diff;
 use spor::file_io::read_file;
-use spor::repository::fs_repository::FSRepository;
 use spor::repository::{AnchorId, Repository};
 use spor::updating::update;
 
@@ -61,16 +61,14 @@ type CommandResult = std::result::Result<(), i32>;
 fn init_handler() -> CommandResult {
     let path = std::env::current_dir().map_err(|_| exit_code::OS_FILE_ERROR)?;
 
-    futures::executor::block_on(async {
-        spor::repository::fs_repository::initialize(&path, None)
-            .map_err(|_| exit_code::DATA_ERROR)
-            .await?;
-        Ok(())
-    })
+    spor::repository::initialize(&path, None)
+        .map_err(|_| exit_code::DATA_ERROR)?;
+
+    Ok(())
 }
 
-fn open_repo(path: &PathBuf) -> std::result::Result<FSRepository, i32> {
-    FSRepository::new(&path, None).map_err(|e| {
+fn open_repo(path: &PathBuf) -> std::result::Result<Repository, i32> {
+    spor::repository::open(path, None).map_err(|e| {
         println!("{:?}", e);
         exit_code::OS_FILE_ERROR
     })
@@ -141,7 +139,7 @@ fn list_handler(args: &Args) -> CommandResult {
         }
     } else {
         let anchors: Vec<serde_json::Value> = repo
-            .iter()
+            .into_iter()
             .map(|(id, anchor)| {
                 json!({
                     "id": id,
@@ -193,7 +191,7 @@ fn diff_handler(args: &Args) -> CommandResult {
 fn update_handler(_args: &Args) -> CommandResult {
     let file = std::path::Path::new(".");
 
-    let repo = FSRepository::new(file, None).map_err(|_| exit_code::OS_FILE_ERROR)?;
+    let repo = spor::repository::open(file, None).map_err(|_| exit_code::OS_FILE_ERROR)?;
 
     // TODO: Can we use a stream of anchors from the repo? I think that's the correct thing in async land.
     futures::executor::block_on(async {
@@ -222,7 +220,7 @@ fn update_handler(_args: &Args) -> CommandResult {
 /// Find an anchor based on a prefix of its ID.
 /// If there is not exactly one match for the ID prefix, then this returns an error.
 fn get_anchor(
-    repo: &FSRepository,
+    repo: &Repository,
     id_prefix: &str,
 ) -> std::result::Result<(AnchorId, Anchor), i32> {
     // TODO: Use stream instead of iteration?
