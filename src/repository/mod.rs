@@ -19,7 +19,8 @@ pub fn new_anchor_id() -> AnchorId {
 /// A Repository comprises configuration data and a `Storage` implementation which manages the actual persistence of
 /// anchors.
 pub struct Repository {
-    pub(super) storage: Box<dyn Storage>, // TODO: Eventually this will hold the repository config as well.
+    pub(self) storage: Box<dyn Storage>, 
+    // TODO: Eventually this will hold the repository config as well.
 }
 
 impl Repository {
