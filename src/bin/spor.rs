@@ -1,4 +1,3 @@
-use futures::prelude::*;
 use log::error;
 use serde::Deserialize;
 use serde_json::json;
@@ -61,8 +60,7 @@ type CommandResult = std::result::Result<(), i32>;
 fn init_handler() -> CommandResult {
     let path = std::env::current_dir().map_err(|_| exit_code::OS_FILE_ERROR)?;
 
-    spor::repository::initialize(&path, None)
-        .map_err(|_| exit_code::DATA_ERROR)?;
+    spor::repository::initialize(&path, None).map_err(|_| exit_code::DATA_ERROR)?;
 
     Ok(())
 }
@@ -111,16 +109,12 @@ fn add_handler(args: &Args) -> CommandResult {
         exit_code::DATA_ERROR
     })?;
 
-    futures::executor::block_on(async {
-        repo.add(anchor)
-            .map_err(|e| {
-                println!("{:?}", e);
-                exit_code::OS_FILE_ERROR
-            })
-            .await?;
+    repo.add(anchor).map_err(|e| {
+        println!("{:?}", e);
+        exit_code::OS_FILE_ERROR
+    })?;
 
-        Ok(())
-    })
+    Ok(())
 }
 
 fn list_handler(args: &Args) -> CommandResult {
@@ -193,36 +187,28 @@ fn update_handler(_args: &Args) -> CommandResult {
 
     let repo = spor::repository::open(file, None).map_err(|_| exit_code::OS_FILE_ERROR)?;
 
-    // TODO: Can we use a stream of anchors from the repo? I think that's the correct thing in async land.
-    futures::executor::block_on(async {
-        for (id, anchor) in &repo {
-            let updated = update(
-                &anchor,
-                &SmithWaterman::<SimpleScorer>::new(SimpleScorer::default()),
-            )
-            .map_err(|e| {
-                println!("{:?}", e);
-                exit_code::DATA_ERROR
-            })?;
+    for (id, anchor) in &repo {
+        let updated = update(
+            &anchor,
+            &SmithWaterman::<SimpleScorer>::new(SimpleScorer::default()),
+        )
+        .map_err(|e| {
+            println!("{:?}", e);
+            exit_code::DATA_ERROR
+        })?;
 
-            repo.update(id, &updated)
-                .map_err(|e| {
-                    println!("{:?}", e);
-                    exit_code::OS_FILE_ERROR
-                })
-                .await?;
-        }
+        repo.update(id, &updated).map_err(|e| {
+            println!("{:?}", e);
+            exit_code::OS_FILE_ERROR
+        })?;
+    }
 
-        Ok(())
-    })
+    Ok(())
 }
 
 /// Find an anchor based on a prefix of its ID.
 /// If there is not exactly one match for the ID prefix, then this returns an error.
-fn get_anchor(
-    repo: &Repository,
-    id_prefix: &str,
-) -> std::result::Result<(AnchorId, Anchor), i32> {
+fn get_anchor(repo: &Repository, id_prefix: &str) -> std::result::Result<(AnchorId, Anchor), i32> {
     // TODO: Use stream instead of iteration?
     let mut prefixed: Vec<(AnchorId, Anchor)> = repo
         .into_iter()

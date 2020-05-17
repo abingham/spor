@@ -1,7 +1,6 @@
+use serde::{Deserialize, Serialize};
 use std::cmp::max;
 use std::io::{Error, ErrorKind, Result};
-use std::path::{Path, PathBuf};
-use serde::{Serialize, Deserialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Context {
@@ -74,55 +73,6 @@ impl Context {
 
     pub fn full_text(self: &Context) -> String {
         format!("{}{}{}", self.before, self.topic, self.after)
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Anchor {
-    file_path: PathBuf,
-    encoding: String,
-    context: Context,
-    metadata: serde_yaml::Value,
-}
-
-impl Anchor {
-    pub fn new(
-        file_path: &Path,
-        context: Context,
-        metadata: serde_yaml::Value,
-        encoding: String,
-    ) -> std::io::Result<Anchor> {
-        if !file_path.is_absolute() {
-            return Err(Error::new(
-                ErrorKind::InvalidInput,
-                "Anchor file path's must be absolute",
-            ));
-        }
-
-        let anchor = Anchor {
-            file_path: PathBuf::from(file_path),
-            encoding: encoding,
-            context: context,
-            metadata: metadata,
-        };
-
-        Ok(anchor)
-    }
-
-    pub fn file_path(&self) -> &PathBuf {
-        return &self.file_path;
-    }
-
-    pub fn encoding(&self) -> &String {
-        return &self.encoding;
-    }
-
-    pub fn context(&self) -> &Context {
-        return &self.context;
-    }
-
-    pub fn metadata(&self) -> &serde_yaml::Value {
-        return &self.metadata;
     }
 }
 

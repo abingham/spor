@@ -1,11 +1,6 @@
-mod serialization;
-
-use std::io;
 use std::path::PathBuf;
-use async_trait::async_trait;
 
-use serialization::{read_anchor, write_anchor};
-use crate::anchor::Anchor;
+use crate::anchor::RelativeAnchor;
 
 use crate::repository::{new_anchor_id, AnchorId, Storage};
 
@@ -15,9 +10,8 @@ pub struct FSStorage {
     /// The full path to the spor dir.
     pub spor_dir: PathBuf,
 
-    // TODO: I would like it if storage didn't need to worry about the repo_root but was instead dealing with 
+    // TODO: I would like it if storage didn't need to worry about the repo_root but was instead dealing with
     // some form of anchor that had relative paths in them.
-
     /// The path to the repo root
     pub repo_dir: PathBuf,
 }
@@ -36,44 +30,39 @@ impl FSStorage {
     }
 }
 
-#[async_trait]
 impl Storage for FSStorage {
-    async fn add(&self, anchor: Anchor) -> Result<AnchorId, String> {
+    fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, String> {
         let anchor_id = new_anchor_id();
         let anchor_path = self.anchor_path(&anchor_id);
 
-        if anchor_path.exists() {
-            return Err(format!("{:?} already exists", anchor_path));
-        }
-
-        if let Err(err) = write_anchor(&anchor_path, &anchor, &self.repo_dir).await {
-            return Err(format!("{:?}", err));
-        }
-
-        Ok(anchor_id)
+        std::fs::OpenOptions::new()
+            .create_new(true)
+            .write(true)
+            .open(anchor_path)
+            .map_err(|err| err.to_string())
+            .and_then(|f| serde_yaml::to_writer(f, anchor).map_err(|err| err.to_string()))
+            .map(|_| anchor_id)
     }
 
-    async fn update(&self, anchor_id: AnchorId, anchor: &Anchor) -> Result<(), String> {
+    fn update(&self, anchor_id: AnchorId, anchor: &RelativeAnchor) -> Result<(), String> {
         let anchor_path = self.anchor_path(&anchor_id);
-        if !anchor_path.exists() {
-            return Err(format!("{:?} does not exist", anchor_path));
-        }
 
-        match write_anchor(&anchor_path, &anchor, &self.repo_dir).await {
-            Ok(_) => Ok(()),
-            Err(err) => Err(format!("{:?}", err)),
-        }
+        std::fs::OpenOptions::new()
+            .truncate(true)
+            .open(anchor_path)
+            .map_err(|err| err.to_string())
+            .and_then(|f| serde_yaml::to_writer(f, anchor).map_err(|err| err.to_string()))
+            .map(|_| ())
     }
 
-    async fn get(&self, anchor_id: &AnchorId) -> Result<Option<Anchor>, String> {
-        let path = self.anchor_path(anchor_id);
-        match read_anchor(&path, &self.repo_dir).await {
-            Err(err) => match err.kind() {
-                io::ErrorKind::NotFound => Ok(None),
-                _ => Err(format!("{:?}", err)),
-            },
-            Ok(anchor) => Ok(Some(anchor)),
-        }
+    fn get(&self, anchor_id: &AnchorId) -> Result<RelativeAnchor, String> {
+        let anchor_path = self.anchor_path(anchor_id);
+
+        std::fs::OpenOptions::new()
+            .read(true)
+            .open(anchor_path)
+            .map_err(|err| err.to_string())
+            .and_then(|f| serde_yaml::from_reader(f).map_err(|err| err.to_string()))
     }
 
     fn all_anchor_ids(&self) -> Vec<AnchorId> {
@@ -95,4 +84,3 @@ impl Storage for FSStorage {
             .collect()
     }
 }
-

@@ -35,9 +35,8 @@ impl<'a> std::iter::Iterator for Iterator<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         loop {
             let anchor_id = self.anchor_ids.pop()?;
-            let anchor_res = futures::executor::block_on(self.repo.get(&anchor_id));
-            match anchor_res {
-                Ok(Some(anchor)) => return Some((anchor_id, anchor)),
+            match self.repo.get(&anchor_id) {
+                Ok(anchor) => return Some((anchor_id, anchor)),
                 _ => (),
             }
         }

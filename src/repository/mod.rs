@@ -1,8 +1,7 @@
 mod fs_storage;
 mod iteration;
 
-use crate::anchor::Anchor;
-use async_trait::async_trait;
+use crate::anchor::{Anchor, RelativeAnchor};
 use fs_storage::FSStorage;
 use std::fs::DirBuilder;
 use std::io;
@@ -19,29 +18,65 @@ pub fn new_anchor_id() -> AnchorId {
 /// A Repository comprises configuration data and a `Storage` implementation which manages the actual persistence of
 /// anchors.
 pub struct Repository {
-    pub(self) storage: Box<dyn Storage>, 
+    repo_dir: PathBuf,
+    pub(self) storage: Box<dyn Storage>,
     // TODO: Eventually this will hold the repository config as well.
 }
 
 impl Repository {
-    pub async fn add(&self, anchor: Anchor) -> Result<AnchorId, String> {
-        self.storage.add(anchor).await
+    pub fn add(&self, anchor: Anchor) -> Result<AnchorId, String> {
+        anchor
+            .file_path()
+            .strip_prefix(&self.repo_dir)
+            .map_err(|err| err.to_string())
+            .and_then(|rel_path| {
+                // TODO: Can we create an "into" between anchor types that cuts down on copies?
+                RelativeAnchor::new(
+                    rel_path,
+                    anchor.context().clone(),
+                    anchor.metadata().clone(),
+                    anchor.encoding().clone(),
+                ).map_err(|err| err.to_string())
+            })
+            .and_then(|rel_anchor| self.storage.add(&rel_anchor))
     }
 
-    pub async fn update(&self, anchor_id: AnchorId, anchor: &Anchor) -> Result<(), String> {
-        self.storage.update(anchor_id, anchor).await
+    pub fn update(&self, anchor_id: AnchorId, anchor: &Anchor) -> Result<(), String> {
+        anchor
+            .file_path()
+            .strip_prefix(&self.repo_dir)
+            .map_err(|err| err.to_string())
+            .and_then(|rel_path| {
+                // TODO: Can we create an "into" between anchor types that cuts down on copies?
+                RelativeAnchor::new(
+                    rel_path,
+                    anchor.context().clone(),
+                    anchor.metadata().clone(),
+                    anchor.encoding().clone(),
+                )
+                .map_err(|err| err.to_string())
+            })
+            .and_then(|rel_anchor| self.storage.update(anchor_id, &rel_anchor))
     }
 
-    pub async fn get(&self, anchor_id: &AnchorId) -> Result<Option<Anchor>, String> {
-        self.storage.get(anchor_id).await
+    pub fn get(&self, anchor_id: &AnchorId) -> Result<Anchor, String> {
+        self.storage.get(anchor_id).and_then(|rel_anchor| {
+            let abs_path = self.repo_dir.join(rel_anchor.file_path());
+            Anchor::new(
+                &abs_path,
+                rel_anchor.context().clone(),
+                rel_anchor.metadata().clone(),
+                rel_anchor.encoding().clone(),
+            )
+            .map_err(|err| err.to_string())
+        })
     }
 }
 
-#[async_trait]
 pub(super) trait Storage {
-    async fn add(&self, anchor: Anchor) -> Result<AnchorId, String>;
-    async fn update(&self, anchor_id: AnchorId, anchor: &Anchor) -> Result<(), String>;
-    async fn get(&self, anchor_id: &AnchorId) -> Result<Option<Anchor>, String>;
+    fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, String>;
+    fn update(&self, anchor_id: AnchorId, anchor: &RelativeAnchor) -> Result<(), String>;
+    fn get(&self, anchor_id: &AnchorId) -> Result<RelativeAnchor, String>;
     fn all_anchor_ids(&self) -> Vec<AnchorId>;
 
     // get by id
@@ -74,8 +109,8 @@ pub fn initialize(path: &Path, spor_dir: Option<&Path>) -> io::Result<()> {
 pub fn open(path: &Path, spor_dir: Option<&Path>) -> io::Result<Repository> {
     let spor_dir = PathBuf::from(spor_dir.unwrap_or(&PathBuf::from(".spor")));
 
-    find_root_dir(path, &spor_dir).map(|root_dir| {
-        let spor_dir = root_dir.join(spor_dir);
+    find_root_dir(path, &spor_dir).map(|repo_dir| {
+        let spor_dir = repo_dir.join(spor_dir);
         assert!(
             spor_dir.exists(),
             "spor-dir not found after find_root_dir succeeded!"
@@ -83,10 +118,11 @@ pub fn open(path: &Path, spor_dir: Option<&Path>) -> io::Result<Repository> {
 
         let storage = FSStorage {
             spor_dir: spor_dir,
-            repo_dir: root_dir,
+            repo_dir: repo_dir.clone(),
         };
 
         Repository {
+            repo_dir: repo_dir,
             storage: Box::new(storage),
         }
     })
