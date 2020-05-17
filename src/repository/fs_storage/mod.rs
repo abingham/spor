@@ -9,18 +9,9 @@ use crate::repository::{new_anchor_id, AnchorId, Storage};
 pub struct FSStorage {
     /// The full path to the spor dir.
     pub spor_dir: PathBuf,
-
-    // TODO: I would like it if storage didn't need to worry about the repo_root but was instead dealing with
-    // some form of anchor that had relative paths in them.
-    /// The path to the repo root
-    pub repo_dir: PathBuf,
 }
 
 impl FSStorage {
-    // pub fn spor_dir(&self) -> PathBuf {
-    //     self.root.join(&self.spor_dir)
-    // }
-
     /// Absolute path to the data file for `anchor_id`.
     fn anchor_path(&self, anchor_id: &AnchorId) -> PathBuf {
         let file_name = format!("{}.yml", anchor_id);
@@ -49,6 +40,7 @@ impl Storage for FSStorage {
 
         std::fs::OpenOptions::new()
             .truncate(true)
+            .write(true)
             .open(anchor_path)
             .map_err(|err| err.to_string())
             .and_then(|f| serde_yaml::to_writer(f, anchor).map_err(|err| err.to_string()))

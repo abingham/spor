@@ -118,7 +118,6 @@ pub fn open(path: &Path, spor_dir: Option<&Path>) -> io::Result<Repository> {
 
         let storage = FSStorage {
             spor_dir: spor_dir,
-            repo_dir: repo_dir.clone(),
         };
 
         Repository {
