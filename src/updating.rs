@@ -44,26 +44,29 @@ fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<An
 
     let new_topic_offset = match source_indices.first() {
         Some(index) => Ok(index),
-        None => Err(UpdateError::InvalidAlignment),
+        None => Err(UpdateError::InvalidAlignment(String::from(
+            "Can not match context to new source.",
+        ))),
     }?;
 
     // Given the new topic offset and size, we can create a new context and
     // anchor.
-    let context = Context::new(
+    Context::new(
         full_text,
         *new_topic_offset,
         source_indices.len(),
         anchor.context().width(),
-    )?;
-
-    let updated = Anchor::new(
-        anchor.file_path(),
-        context,
-        anchor.metadata().clone(),
-        anchor.encoding().clone(),
-    )?;
-
-    Ok(updated)
+    )
+    .map_err(|err| UpdateError::InvalidAlignment(err.to_string()))
+    .and_then(|context| {
+        Anchor::new(
+            anchor.file_path(),
+            context,
+            anchor.metadata().clone(),
+            anchor.encoding().clone(),
+        )
+        .map_err(|err| UpdateError::InvalidAlignment(err.to_string()))
+    })
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -72,9 +75,9 @@ pub enum UpdateError {
     NoAlignments,
 
     // An alignment doesn't match the text
-    InvalidAlignment,
+    InvalidAlignment(String),
 
-    Io(std::io::ErrorKind, String)
+    Io(std::io::ErrorKind, String),
 }
 
 impl From<std::io::Error> for UpdateError {

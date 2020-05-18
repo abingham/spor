@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
-use std::io::{Error, ErrorKind, Result};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Context {
@@ -12,11 +11,11 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(text: &str, offset: usize, width: usize, context_width: usize) -> Result<Context> {
+    pub fn new(text: &str, offset: usize, width: usize, context_width: usize) -> Result<Context, String> {
         let topic: String = text.chars().skip(offset).take(width).collect();
 
         if topic.len() < width {
-            return Err(Error::new(ErrorKind::InvalidInput, "Unable to read topic"));
+            return Err(String::from("Unable to read topic"));
         }
 
         // read before

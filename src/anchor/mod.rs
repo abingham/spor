@@ -1,4 +1,3 @@
-use std::io::{Error, ErrorKind};
 use std::path::{Path, PathBuf};
 use serde::{Serialize, Deserialize};
 use std::marker::PhantomData;
@@ -25,12 +24,9 @@ impl<PathType: CheckPath> Anchor_<PathType> {
         context: Context,
         metadata: serde_yaml::Value,
         encoding: String,
-    ) -> std::io::Result<Anchor_<PathType>> {
+    ) -> Result<Anchor_<PathType>, String> {
         if let Some(msg) = PathType::check_path(file_path) {
-            return Err(Error::new(
-                ErrorKind::InvalidInput,
-                msg,
-            ));
+            return Err(msg);
         }
 
         let anchor = Anchor_::<PathType> {

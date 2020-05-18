@@ -1,9 +1,8 @@
 use crate::anchor::{Anchor, Context};
 use crate::file_io::read_file;
-use std::io::Result;
 
-pub fn get_anchor_diff(anchor: &Anchor) -> Result<(bool, Vec<String>)> {
-    let full_text = read_file(anchor.file_path(), anchor.encoding())?;
+pub fn get_anchor_diff(anchor: &Anchor) -> Result<(bool, Vec<String>), String> {
+    let full_text = read_file(anchor.file_path(), anchor.encoding()).map_err(|err| err.to_string())?;
 
     let context = Context::new(
         &full_text,
