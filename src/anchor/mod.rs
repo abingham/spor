@@ -1,6 +1,7 @@
 use std::path::{Path, PathBuf};
 use serde::{Serialize, Deserialize};
 use std::marker::PhantomData;
+use thiserror::Error;
 
 mod check_path;
 mod context;
@@ -24,9 +25,9 @@ impl<PathType: CheckPath> Anchor_<PathType> {
         context: Context,
         metadata: serde_yaml::Value,
         encoding: String,
-    ) -> Result<Anchor_<PathType>, String> {
+    ) -> Result<Anchor_<PathType>, AnchorError> {
         if let Some(msg) = PathType::check_path(file_path) {
-            return Err(msg);
+            return Err(AnchorError::PathError(msg));
         }
 
         let anchor = Anchor_::<PathType> {
@@ -60,3 +61,8 @@ impl<PathType: CheckPath> Anchor_<PathType> {
 pub type Anchor = Anchor_::<check_path::AbsolutePath>;
 pub type RelativeAnchor = Anchor_::<check_path::RelativePath>;
 
+#[derive(Debug, Error)]
+pub enum AnchorError {
+    #[error("{0}")]
+    PathError(String)
+}

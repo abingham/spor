@@ -69,6 +69,7 @@ fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<An
     })
 }
 
+// TODO: Re-do this with thiserror, anyhow, etc...
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum UpdateError {
     // No alignments could be found

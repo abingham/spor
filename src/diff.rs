@@ -1,5 +1,6 @@
-use crate::anchor::{Anchor, Context};
+use crate::anchor;
 use crate::file_io::read_file;
+use anyhow::{Result, Context};
 
 /// Check to see if and how an anchored file has changed since an anchor was created.
 ///
@@ -15,30 +16,26 @@ use crate::file_io::read_file;
 /// The first element of the returned tuple indicates whether any changes were found. The
 /// second element is a vector of strings describing the diff (this may have contents even
 /// if there is no actual difference).
-///
+/// 
 /// # Errors
 ///
-/// A string describing any failure to calculate a new anchor or the diff.
-pub fn get_anchor_diff(anchor: &Anchor) -> Result<(bool, Vec<String>), String> {
-    let new_anchor = 
-        read_file(anchor.file_path(), anchor.encoding())
-        .map_err(|err| err.to_string())
-        .and_then(|full_text| {
-            Context::new(
-                &full_text,
-                anchor.context().offset(),
-                anchor.context().topic().len(),
-                anchor.context().width(),
-            )
-        })
-        .and_then(|context| {
-            Anchor::new(
-                anchor.file_path(),
-                context,
-                anchor.metadata().clone(),
-                anchor.encoding().clone(),
-            )
-        })?;
+/// A std::error::Error describing any failure to construct a new Anchor.
+pub fn get_anchor_diff(anchor: &anchor::Anchor) -> Result<(bool, Vec<String>)> {
+    let full_text = read_file(anchor.file_path(), anchor.encoding())?;
+
+    let context = anchor::Context::new(
+        &full_text,
+        anchor.context().offset(),
+        anchor.context().topic().len(),
+        anchor.context().width(),
+    ).context("Unable to construct Context for new Anchor")?;
+
+    let new_anchor = anchor::Anchor::new(
+        anchor.file_path(),
+        context,
+        anchor.metadata().clone(),
+        anchor.encoding().clone(),
+    ).context("Unable to construct new Anchor")?;
 
     let mut diff_strings: Vec<String> = Vec::new();
 

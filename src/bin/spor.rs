@@ -103,7 +103,8 @@ fn add_handler(args: &Args) -> CommandResult {
         args.arg_width,
         args.arg_context_width,
     )
-    .and_then(|c| Anchor::new(&full_path, c, metadata, encoding))
+    .map_err(|err| err.to_string())
+    .and_then(|c| Anchor::new(&full_path, c, metadata, encoding).map_err(|err| err.to_string()))
     .map_err(|e| {
         println!("{:?}", e);
         exit_code::DATA_ERROR

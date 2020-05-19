@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::cmp::max;
+use thiserror::Error;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Context {
@@ -11,11 +12,11 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(text: &str, offset: usize, width: usize, context_width: usize) -> Result<Context, String> {
+    pub fn new(text: &str, offset: usize, width: usize, context_width: usize) -> Result<Context, ContextError> {
         let topic: String = text.chars().skip(offset).take(width).collect();
 
         if topic.len() < width {
-            return Err(String::from("Unable to read topic"));
+            return Err(ContextError::DataError(String::from("Unable to read topic")));
         }
 
         // read before
@@ -73,6 +74,12 @@ impl Context {
     pub fn full_text(self: &Context) -> String {
         format!("{}{}{}", self.before, self.topic, self.after)
     }
+}
+
+#[derive(Debug, Error)]
+pub enum ContextError {
+    #[error("{0}")]
+    DataError(String)
 }
 
 #[cfg(test)]
