@@ -1,22 +1,44 @@
 use crate::anchor::{Anchor, Context};
 use crate::file_io::read_file;
 
+/// Check to see if and how an anchored file has changed since an anchor was created.
+///
+/// Get the difference between an existing anchor and an anchor built against the current state
+/// of its file.
+///
+/// # Arguments
+///
+/// * `anchor` - The existing anchor to check.
+///
+/// # Returns
+///
+/// The first element of the returned tuple indicates whether any changes were found. The
+/// second element is a vector of strings describing the diff (this may have contents even
+/// if there is no actual difference).
+///
+/// # Errors
+///
+/// A string describing any failure to calculate a new anchor or the diff.
 pub fn get_anchor_diff(anchor: &Anchor) -> Result<(bool, Vec<String>), String> {
-    let full_text = read_file(anchor.file_path(), anchor.encoding()).map_err(|err| err.to_string())?;
-
-    let context = Context::new(
-        &full_text,
-        anchor.context().offset(),
-        anchor.context().topic().len(),
-        anchor.context().width(),
-    )?;
-
-    let new_anchor = Anchor::new(
-        anchor.file_path(),
-        context,
-        anchor.metadata().clone(),
-        anchor.encoding().clone(),
-    )?;
+    let new_anchor = 
+        read_file(anchor.file_path(), anchor.encoding())
+        .map_err(|err| err.to_string())
+        .and_then(|full_text| {
+            Context::new(
+                &full_text,
+                anchor.context().offset(),
+                anchor.context().topic().len(),
+                anchor.context().width(),
+            )
+        })
+        .and_then(|context| {
+            Anchor::new(
+                anchor.file_path(),
+                context,
+                anchor.metadata().clone(),
+                anchor.encoding().clone(),
+            )
+        })?;
 
     let mut diff_strings: Vec<String> = Vec::new();
 
