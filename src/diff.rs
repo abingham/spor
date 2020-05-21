@@ -1,6 +1,6 @@
 use crate::anchor;
 use crate::file_io::read_file;
-use anyhow::{Result, Context};
+use thiserror::Error;
 
 /// Check to see if and how an anchored file has changed since an anchor was created.
 ///
@@ -20,7 +20,7 @@ use anyhow::{Result, Context};
 /// # Errors
 ///
 /// A std::error::Error describing any failure to construct a new Anchor.
-pub fn get_anchor_diff(anchor: &anchor::Anchor) -> Result<(bool, Vec<String>)> {
+pub fn get_anchor_diff(anchor: &anchor::Anchor) -> Result<(bool, Vec<String>), DiffError> {
     let full_text = read_file(anchor.file_path(), anchor.encoding())?;
 
     let context = anchor::Context::new(
@@ -28,14 +28,14 @@ pub fn get_anchor_diff(anchor: &anchor::Anchor) -> Result<(bool, Vec<String>)> {
         anchor.context().offset(),
         anchor.context().topic().len(),
         anchor.context().width(),
-    ).context("Unable to construct Context for new Anchor")?;
+    ).map_err(|err| DiffError::InvalidAnchor(err.to_string()))?;
 
     let new_anchor = anchor::Anchor::new(
         anchor.file_path(),
         context,
         anchor.metadata().clone(),
         anchor.encoding().clone(),
-    ).context("Unable to construct new Anchor")?;
+    ).map_err(|err| DiffError::InvalidAnchor(err.to_string()))?;
 
     let mut diff_strings: Vec<String> = Vec::new();
 
@@ -60,3 +60,17 @@ pub fn get_anchor_diff(anchor: &anchor::Anchor) -> Result<(bool, Vec<String>)> {
 
     Ok((changed, diff_strings))
 }
+
+#[derive(Error, Debug)]
+pub enum DiffError {
+    #[error("Unable to create new anchor: {0}")]
+    InvalidAnchor(String),
+
+    #[error(transparent)]
+    Io {
+        #[from]
+        source: std::io::Error,
+    },
+
+}
+

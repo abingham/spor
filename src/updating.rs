@@ -1,5 +1,4 @@
-use std::error::Error;
-use std::fmt;
+use thiserror::Error;
 
 use crate::alignment::align::{Aligner, AlignmentCell};
 use crate::anchor::{Anchor, Context};
@@ -44,7 +43,7 @@ fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<An
 
     let new_topic_offset = match source_indices.first() {
         Some(index) => Ok(index),
-        None => Err(UpdateError::InvalidAlignment(String::from(
+        None => Err(UpdateError::InvalidAnchor(String::from(
             "Can not match context to new source.",
         ))),
     }?;
@@ -57,7 +56,7 @@ fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<An
         source_indices.len(),
         anchor.context().width(),
     )
-    .map_err(|err| UpdateError::InvalidAlignment(err.to_string()))
+    .map_err(|err| UpdateError::InvalidAnchor(err.to_string()))
     .and_then(|context| {
         Anchor::new(
             anchor.file_path(),
@@ -65,35 +64,24 @@ fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<An
             anchor.metadata().clone(),
             anchor.encoding().clone(),
         )
-        .map_err(|err| UpdateError::InvalidAlignment(err.to_string()))
+        .map_err(|err| UpdateError::InvalidAnchor(err.to_string()))
     })
 }
 
-// TODO: Re-do this with thiserror, anyhow, etc...
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Error, Debug)]
 pub enum UpdateError {
-    // No alignments could be found
+    #[error("No alignment could be found in update")]
     NoAlignments,
 
-    // An alignment doesn't match the text
-    InvalidAlignment(String),
+    #[error("Unable to create new anchor: {0}")]
+    InvalidAnchor(String),
 
-    Io(std::io::ErrorKind, String),
+    #[error(transparent)]
+    Io {
+        #[from]
+        source: std::io::Error,
+    },
 }
-
-impl From<std::io::Error> for UpdateError {
-    fn from(err: std::io::Error) -> UpdateError {
-        UpdateError::Io(err.kind(), err.to_string())
-    }
-}
-
-impl fmt::Display for UpdateError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self)
-    }
-}
-
-impl Error for UpdateError {}
 
 // Determines if an index is in the topic of an anchor
 fn index_in_topic(index: usize, anchor: &Anchor) -> bool {

@@ -9,7 +9,7 @@ homepage = "https://github.com/abingham/spor"
 repository = "https://github.com/abingham/spor"
 
 [dependencies]
-anyhow = "1.0"
+# anyhow = "1.0"
 async-std = "1.5.0"
 async-trait = "0.1.30"
 diff = "0.1.11"
