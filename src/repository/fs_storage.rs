@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::anchor::RelativeAnchor;
 
-use crate::repository::{new_anchor_id, AnchorId, Storage};
+use crate::repository::{new_anchor_id, AnchorId, Storage, StorageError};
 
 /// Filesystem-based storage
 #[derive(Debug)]
@@ -22,39 +22,48 @@ impl FSStorage {
 }
 
 impl Storage for FSStorage {
-    fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, String> {
+    fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, StorageError> {
         let anchor_id = new_anchor_id();
         let anchor_path = self.anchor_path(&anchor_id);
 
-        std::fs::OpenOptions::new()
+        let f = std::fs::OpenOptions::new()
             .create_new(true)
             .write(true)
-            .open(anchor_path)
-            .map_err(|err| err.to_string())
-            .and_then(|f| serde_yaml::to_writer(f, anchor).map_err(|err| err.to_string()))
+            .open(anchor_path)?;
+
+        serde_yaml::to_writer(f, anchor)
+            .map_err(|err| StorageError::Other(err.to_string()))
             .map(|_| anchor_id)
     }
 
-    fn update(&self, anchor_id: AnchorId, anchor: &RelativeAnchor) -> Result<(), String> {
-        let anchor_path = self.anchor_path(&anchor_id);
+    fn update(&self, anchor_id: &AnchorId, anchor: &RelativeAnchor) -> Result<(), StorageError> {
+        let anchor_path = self.anchor_path(anchor_id);
 
-        std::fs::OpenOptions::new()
+        let f = std::fs::OpenOptions::new()
             .truncate(true)
             .write(true)
             .open(anchor_path)
-            .map_err(|err| err.to_string())
-            .and_then(|f| serde_yaml::to_writer(f, anchor).map_err(|err| err.to_string()))
+            .map_err(|err| match err.kind() {
+                std::io::ErrorKind::NotFound => StorageError::BadId(anchor_id.clone()),
+                _ => StorageError::from(err)
+            })?;
+
+        serde_yaml::to_writer(f, anchor)
+            .map_err(|err| StorageError::Other(err.to_string()))
             .map(|_| ())
     }
 
-    fn get(&self, anchor_id: &AnchorId) -> Result<RelativeAnchor, String> {
+    fn get(&self, anchor_id: &AnchorId) -> Result<RelativeAnchor, StorageError> {
         let anchor_path = self.anchor_path(anchor_id);
 
-        std::fs::OpenOptions::new()
-            .read(true)
-            .open(anchor_path)
-            .map_err(|err| err.to_string())
-            .and_then(|f| serde_yaml::from_reader(f).map_err(|err| err.to_string()))
+        let f = std::fs::OpenOptions::new().read(true).open(anchor_path) 
+            .map_err(|err| match err.kind() {
+                std::io::ErrorKind::NotFound => StorageError::BadId(anchor_id.clone()),
+                _ => StorageError::from(err)
+            })?;
+
+        serde_yaml::from_reader(f)
+            .map_err(|err| StorageError::Other(err.to_string()))
     }
 
     fn all_anchor_ids(&self) -> Vec<AnchorId> {

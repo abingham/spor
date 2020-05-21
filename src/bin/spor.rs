@@ -110,7 +110,7 @@ fn add_handler(args: &Args) -> CommandResult {
         exit_code::DATA_ERROR
     })?;
 
-    repo.add(anchor).map_err(|e| {
+    repo.add(&anchor).map_err(|e| {
         println!("{:?}", e);
         exit_code::OS_FILE_ERROR
     })?;
@@ -198,7 +198,7 @@ fn update_handler(_args: &Args) -> CommandResult {
             exit_code::DATA_ERROR
         })?;
 
-        repo.update(id, &updated).map_err(|e| {
+        repo.update(&id, &updated).map_err(|e| {
             println!("{:?}", e);
             exit_code::OS_FILE_ERROR
         })?;

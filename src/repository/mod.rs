@@ -1,11 +1,12 @@
 mod fs_storage;
 mod iteration;
 
-use crate::anchor::{Anchor, RelativeAnchor};
+use crate::anchor::{Anchor, AnchorError, RelativeAnchor};
 use fs_storage::FSStorage;
 use std::fs::DirBuilder;
 use std::io;
 use std::path::{Path, PathBuf};
+use thiserror::Error;
 
 pub type AnchorId = String;
 
@@ -24,59 +25,81 @@ pub struct Repository {
 }
 
 impl Repository {
-    pub fn add(&self, anchor: Anchor) -> Result<AnchorId, String> {
-        anchor
+    pub fn add(&self, anchor: &Anchor) -> Result<AnchorId, RepositoryError> {
+        let rel_path = anchor
             .file_path()
             .strip_prefix(&self.repo_dir)
-            .map_err(|err| err.to_string())
-            .and_then(|rel_path| {
-                // TODO: Can we create an "into" between anchor types that cuts down on copies?
-                RelativeAnchor::new(
-                    rel_path,
-                    anchor.context().clone(),
-                    anchor.metadata().clone(),
-                    anchor.encoding().clone(),
-                ).map_err(|err| err.to_string())
-            })
-            .and_then(|rel_anchor| self.storage.add(&rel_anchor))
+            .map_err(|err| RepositoryError::ForeignPath(anchor.file_path().clone(), err.to_string()))?;
+
+        let anchor = RelativeAnchor::new(
+            rel_path,
+            anchor.context().clone(),
+            anchor.metadata().clone(),
+            anchor.encoding().clone(),
+        )?;
+
+        let anchor_id = self.storage.add(&anchor)?;
+
+        Ok(anchor_id)
     }
 
-    pub fn update(&self, anchor_id: AnchorId, anchor: &Anchor) -> Result<(), String> {
-        anchor
+    pub fn update(&self, anchor_id: &AnchorId, anchor: &Anchor) -> Result<(), RepositoryError> {
+        let rel_path = anchor
             .file_path()
             .strip_prefix(&self.repo_dir)
-            .map_err(|err| err.to_string())
-            .and_then(|rel_path| {
-                // TODO: Can we create an "into" between anchor types that cuts down on copies?
-                RelativeAnchor::new(
-                    rel_path,
-                    anchor.context().clone(),
-                    anchor.metadata().clone(),
-                    anchor.encoding().clone(),
-                )
-                .map_err(|err| err.to_string())
-            })
-            .and_then(|rel_anchor| self.storage.update(anchor_id, &rel_anchor))
+            .map_err(|err| RepositoryError::ForeignPath(anchor.file_path().clone(), err.to_string()))?;
+
+        // TODO: Can we create an "into" between anchor types that cuts down on copies?
+        let anchor = RelativeAnchor::new(
+            rel_path,
+            anchor.context().clone(),
+            anchor.metadata().clone(),
+            anchor.encoding().clone(),
+        )?;
+
+        self.storage.update(anchor_id, &anchor)?;
+
+        Ok(())
     }
 
-    pub fn get(&self, anchor_id: &AnchorId) -> Result<Anchor, String> {
-        self.storage.get(anchor_id).and_then(|rel_anchor| {
-            let abs_path = self.repo_dir.join(rel_anchor.file_path());
-            Anchor::new(
+    pub fn get(&self, anchor_id: &AnchorId) -> Result<Anchor, RepositoryError> {
+        let rel_anchor = self.storage.get(anchor_id)?;
+        
+        let abs_path = self.repo_dir.join(rel_anchor.file_path());
+
+        let anchor = Anchor::new(
                 &abs_path,
                 rel_anchor.context().clone(),
                 rel_anchor.metadata().clone(),
                 rel_anchor.encoding().clone(),
-            )
-            .map_err(|err| err.to_string())
-        })
+            )?;
+
+        Ok(anchor)
     }
 }
 
+#[derive(Error, Debug)]
+pub enum RepositoryError {
+    #[error("Anchored file {0} is not in repository")]
+    ForeignPath(PathBuf, String),
+
+    #[error(transparent)]
+    Storage {
+        #[from]
+        source: StorageError,
+    },
+
+    #[error(transparent)]
+    Anchor {
+        #[from]
+        source: AnchorError,
+    },
+}
+
 pub(super) trait Storage {
-    fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, String>;
-    fn update(&self, anchor_id: AnchorId, anchor: &RelativeAnchor) -> Result<(), String>;
-    fn get(&self, anchor_id: &AnchorId) -> Result<RelativeAnchor, String>;
+    fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, StorageError>;
+    fn update(&self, anchor_id: &AnchorId, anchor: &RelativeAnchor) -> Result<(), StorageError>;
+    fn get(&self, anchor_id: &AnchorId) -> Result<RelativeAnchor, StorageError>;
     fn all_anchor_ids(&self) -> Vec<AnchorId>;
 
     // get by id
@@ -84,6 +107,21 @@ pub(super) trait Storage {
     // remove
     // iterate
     // items
+}
+
+#[derive(Error, Debug)]
+pub enum StorageError {
+    #[error("No such anchor ID: {0}")]
+    BadId(AnchorId),
+
+    #[error(transparent)]
+    Io {
+        #[from]
+        source: std::io::Error,
+    },
+
+    #[error("{0}")]
+    Other(String),
 }
 
 /// Initialize a spor repository in `path` if one doesn't already exist.
@@ -116,9 +154,7 @@ pub fn open(path: &Path, spor_dir: Option<&Path>) -> io::Result<Repository> {
             "spor-dir not found after find_root_dir succeeded!"
         );
 
-        let storage = FSStorage {
-            spor_dir: spor_dir,
-        };
+        let storage = FSStorage { spor_dir: spor_dir };
 
         Repository {
             repo_dir: repo_dir,
