@@ -17,9 +17,9 @@ pub fn update(anchor: &Anchor, align: &dyn Aligner) -> Result<Anchor, UpdateErro
 fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<Anchor, UpdateError> {
     let ctxt = anchor.context();
 
-    let (_, alignments) = aligner.align(&ctxt.full_text(), &full_text);
+    let alignments = aligner.align(&ctxt.full_text(), &full_text);
 
-    let alignment = match alignments.first() {
+    let alignment = match alignments.iter().next() {
         Some(a) => Ok(a),
         None => Err(UpdateError::NoAlignments),
     }?;

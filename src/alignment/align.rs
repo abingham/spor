@@ -1,3 +1,5 @@
+// use std::iter::IntoIterator;
+
 #[derive(Debug, PartialEq)]
 pub enum AlignmentCell {
     Both { left: usize, right: usize }, // no gap; indices for both strings
@@ -7,7 +9,30 @@ pub enum AlignmentCell {
 
 pub type Alignment = Vec<AlignmentCell>;
 
-pub type Alignments = (f32, Vec<Alignment>);
+pub struct Alignments {
+    score: f32, 
+    alignments: Vec<Alignment>
+}
+
+impl Alignments {
+    pub fn new<T>(score: f32, alignments: T) -> Alignments
+        where T: IntoIterator<Item=Alignment> {
+            Alignments {
+                score: score,
+                alignments: alignments.into_iter().collect()
+            }
+        }
+
+    pub fn score(&self) -> f32 { self.score }
+
+    pub fn iter(&self) -> std::slice::Iter<Alignment> { 
+        self.alignments.iter() 
+    }
+
+    pub fn len(&self) -> usize {
+        self.alignments.len()
+    }
+}
 
 pub trait Aligner {
     // Calculate the best alignments of sequences `a` and `b`.

@@ -1,4 +1,4 @@
-use super::super::align::{Aligner, Alignment};
+use super::super::align::{Aligner, Alignments};
 use super::details::{build_score_matrix, traceback_to_alignment, tracebacks, Index};
 use super::scorer::Scorer;
 
@@ -20,7 +20,7 @@ impl<T: Scorer> SmithWaterman<T> {
 }
 
 impl<T: Scorer> Aligner for SmithWaterman<T> {
-    fn align(&self, a: &str, b: &str) -> (f32, Vec<Alignment>) {
+    fn align(&self, a: &str, b: &str) -> Alignments {
         let (score_matrix, tb_matrix) = build_score_matrix(a, b, &self.scorer);
         let max_score = score_matrix
             .iter()
@@ -42,7 +42,7 @@ impl<T: Scorer> Aligner for SmithWaterman<T> {
                 }
             }
         }
-        (*max_score, alignments)
+        Alignments::new(*max_score, alignments)
     }
 }
 
@@ -57,9 +57,9 @@ mod tests {
 
     #[test]
     fn canned_alignment() {
-        let (max_score, alignments) =
+        let alignments =
             SmithWaterman::<SimpleScorer>::new(SimpleScorer::default()).align(INPUT1, INPUT2);
-        assert_eq!(max_score, 13.0);
+        assert_eq!(alignments.score(), 13.0);
         assert_eq!(alignments.len(), 1);
 
         let expected = vec![
@@ -71,6 +71,6 @@ mod tests {
             AlignmentCell::Both { left: 6, right: 5 },
         ];
 
-        assert_eq!(alignments[0], expected);
+        assert_eq!(*alignments.iter().next().unwrap(), expected);
     }
 }

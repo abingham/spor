@@ -20,7 +20,7 @@ type Traceback = Vec<Index>;
 // Note that tracebacks are in reverse. The first element in the traceback is
 // the "biggest" index in the traceback, and they work their way backward
 // through the strings being aligned.
-pub fn tracebacks(traceback_matrix: &TracebackMatrix, idx: Index) -> Vec<Traceback> {
+pub(super) fn tracebacks(traceback_matrix: &TracebackMatrix, idx: Index) -> Vec<Traceback> {
     let directions = traceback_matrix.get(idx).expect("index is invalid");
     if directions.is_empty() {
         vec![vec![]]
@@ -49,7 +49,7 @@ pub fn tracebacks(traceback_matrix: &TracebackMatrix, idx: Index) -> Vec<Traceba
     }
 }
 
-pub fn build_score_matrix(a: &str, b: &str, scorer: &dyn Scorer) -> (ScoreMatrix, TracebackMatrix) {
+pub(super) fn build_score_matrix(a: &str, b: &str, scorer: &dyn Scorer) -> (ScoreMatrix, TracebackMatrix) {
     let mut score_matrix = ScoreMatrix::zeros((a.len() + 1, b.len() + 1));
 
     let mut traceback_matrix =
@@ -107,7 +107,7 @@ pub fn build_score_matrix(a: &str, b: &str, scorer: &dyn Scorer) -> (ScoreMatrix
 //
 // Returns: An iterable of (index, index) tupless where ether (but not both)
 //   tuples can be `None`.
-pub fn traceback_to_alignment(traceback: &Traceback) -> Result<Alignment, String> {
+pub(super) fn traceback_to_alignment(traceback: &Traceback) -> Result<Alignment, String> {
     if traceback.is_empty() {
         return Result::Ok(Alignment::new());
     }
