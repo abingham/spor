@@ -1,5 +1,5 @@
 mod fs_storage;
-mod iteration;
+pub mod iteration;
 
 use crate::anchor::{Anchor, AnchorError, RelativeAnchor};
 use fs_storage::FSStorage;
@@ -18,13 +18,18 @@ pub fn new_anchor_id() -> AnchorId {
 ///
 /// A Repository comprises configuration data and a `Storage` implementation which manages the actual persistence of
 /// anchors.
+#[derive(Clone)]
 pub struct Repository {
     repo_dir: PathBuf,
-    pub(self) storage: Box<dyn Storage>,
+    pub(self) storage: std::rc::Rc<dyn Storage>,
     // TODO: Eventually this will hold the repository config as well.
 }
 
 impl Repository {
+    pub fn repo_dir(&self) -> &Path {
+            &self.repo_dir
+        }
+
     pub fn add(&self, anchor: &Anchor) -> Result<AnchorId, RepositoryError> {
         let rel_path = anchor
             .file_path()
@@ -158,7 +163,7 @@ pub fn open(path: &Path, spor_dir: Option<&Path>) -> io::Result<Repository> {
 
         Repository {
             repo_dir: repo_dir,
-            storage: Box::new(storage),
+            storage: std::rc::Rc::new(storage),
         }
     })
 }

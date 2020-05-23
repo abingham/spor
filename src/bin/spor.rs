@@ -123,7 +123,7 @@ fn list_handler(args: &Args) -> CommandResult {
     let repo = open_repo(&file.to_path_buf())?;
 
     if !args.flag_json {
-        for (id, anchor) in &repo {
+        for (id, anchor) in repo {
             println!(
                 "{} {:?}:{} => {:?}",
                 id,
@@ -152,8 +152,7 @@ fn status_handler(_args: &Args) -> CommandResult {
     let file = std::path::Path::new(".");
     let repo = open_repo(&file.to_path_buf())?;
 
-    // TODO: Use stream instead?
-    for (id, anchor) in &repo {
+    for (id, anchor) in repo {
         let (changed, _diffs) = get_anchor_diff(&anchor).map_err(|_e| exit_code::OS_FILE_ERROR)?;
 
         if changed {
@@ -188,7 +187,7 @@ fn update_handler(_args: &Args) -> CommandResult {
 
     let repo = spor::repository::open(file, None).map_err(|_| exit_code::OS_FILE_ERROR)?;
 
-    for (id, anchor) in &repo {
+    for (id, anchor) in repo.clone() {
         let updated = update(
             &anchor,
             &SmithWaterman::<SimpleScorer>::new(SimpleScorer::default()),
@@ -210,8 +209,8 @@ fn update_handler(_args: &Args) -> CommandResult {
 /// Find an anchor based on a prefix of its ID.
 /// If there is not exactly one match for the ID prefix, then this returns an error.
 fn get_anchor(repo: &Repository, id_prefix: &str) -> std::result::Result<(AnchorId, Anchor), i32> {
-    // TODO: Use stream instead of iteration?
     let mut prefixed: Vec<(AnchorId, Anchor)> = repo
+        .clone()
         .into_iter()
         .filter(|(id, _anchor)| id.starts_with(id_prefix))
         .collect();
