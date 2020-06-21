@@ -50,7 +50,7 @@ fn _update(anchor: &Anchor, full_text: &str, aligner: &dyn Aligner) -> Result<An
 
     // Given the new topic offset and size, we can create a new context and
     // anchor.
-    Context::new(
+    Context::from_text(
         full_text,
         *new_topic_offset,
         source_indices.len(),
@@ -100,7 +100,7 @@ mod tests {
         let initial_text = "asdf";
         let final_text = "qwer\nasdf";
 
-        let context = Context::new(initial_text, 0, 4, 3).unwrap();
+        let context = Context::from_text(initial_text, 0, 4, 3).unwrap();
 
         let metadata = serde_yaml::from_str("foo: bar").unwrap();
 

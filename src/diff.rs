@@ -23,7 +23,7 @@ use thiserror::Error;
 pub fn get_anchor_diff(anchor: &anchor::Anchor) -> Result<(bool, Vec<String>), DiffError> {
     let full_text = read_file(anchor.file_path(), anchor.encoding())?;
 
-    let context = anchor::Context::new(
+    let context = anchor::Context::from_text(
         &full_text,
         anchor.context().offset(),
         anchor.context().topic().len(),

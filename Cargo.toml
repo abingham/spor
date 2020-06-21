@@ -1,6 +1,6 @@
 [package]
 name = "spor"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Austin Bingham <austin.bingham@gmail.com>"]
 edition = "2018"
 description = "Anchored metadata"

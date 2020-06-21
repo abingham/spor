@@ -97,7 +97,7 @@ fn add_handler(args: &Args) -> CommandResult {
         exit_code::DATA_ERROR
     })?;
 
-    let anchor = Context::new(
+    let anchor = Context::from_text(
         &full_text,
         args.arg_offset,
         args.arg_width,

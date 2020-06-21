@@ -12,7 +12,17 @@ pub struct Context {
 }
 
 impl Context {
-    pub fn new(text: &str, offset: usize, width: usize, context_width: usize) -> Result<Context, ContextError> {
+    pub fn new(before: &str, offset: usize, topic: &str, after: &str, width: usize) -> Context {
+        Context {
+            before: before.to_owned(),
+            offset: offset,
+            topic: topic.to_owned(),
+            after: after.to_owned(),
+            width: width,
+        }
+    }
+
+    pub fn from_text(text: &str, offset: usize, width: usize, context_width: usize) -> Result<Context, ContextError> {
         let topic: String = text.chars().skip(offset).take(width).collect();
 
         if topic.len() < width {
@@ -40,13 +50,13 @@ impl Context {
             .take(context_width)
             .collect();
 
-        let context = Context {
-            before: before,
-            offset: offset,
-            topic: topic,
-            after: after,
-            width: context_width,
-        };
+        let context = Context::new(
+            &before,
+            offset,
+            &topic,
+            &after,
+            context_width,
+        );
 
         Ok(context)
     }
@@ -91,7 +101,7 @@ mod tests {
 
         #[test]
         fn construct_context_with_topic_at_front_of_file() {
-            Context::new("text", 0, 4, 3).unwrap();
+            Context::from_text("text", 0, 4, 3).unwrap();
         }
     }
 }
