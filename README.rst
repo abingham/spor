@@ -53,7 +53,7 @@ You can anchor metadata to line 4 (the function definition) by specifying the st
 The `10` at the end specifies the size of the "context" around the anchored code
 that we use for updating anchors.
 
-This will associate the dictionary ``{meta: data}`` with the code `return x * 2`. You can see
+This will associate the dictionary ``{meta: data}`` with the code ``return x * 2``. You can see
 this metadata by using the ``list`` command::
 
   $ spor list example.py
