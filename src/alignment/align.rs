@@ -1,4 +1,4 @@
-// use std::iter::IntoIterator;
+//! Core types and interfaces for alignment algorithms.
 
 #[derive(Debug, PartialEq)]
 pub enum AlignmentCell {

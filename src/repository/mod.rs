@@ -1,3 +1,9 @@
+//! Implementation of repository for storing and retrieving anchors.
+//! 
+//! A `Repository` manages the storage of anchors. Each `Repository` has
+//! a `Storage` backend which implements the concrete method for storing
+//! anchors.
+
 mod fs_storage;
 pub mod iteration;
 
@@ -10,6 +16,7 @@ use thiserror::Error;
 
 pub type AnchorId = String;
 
+/// Generate a new [`AnchorId`]
 pub fn new_anchor_id() -> AnchorId {
     format!("{}", uuid::Uuid::new_v4())
 }
@@ -26,10 +33,12 @@ pub struct Repository {
 }
 
 impl Repository {
+    /// The directory containing the repository.
     pub fn repo_dir(&self) -> &Path {
             &self.repo_dir
         }
 
+    /// Add an anchor to the repository.
     pub fn add(&self, anchor: &Anchor) -> Result<AnchorId, RepositoryError> {
         let rel_path = anchor
             .file_path()
@@ -48,6 +57,10 @@ impl Repository {
         Ok(anchor_id)
     }
 
+    /// Replace the contents of an anchor.
+    /// 
+    /// This looks for the anchor with ID `anchor_id` in the repository and
+    /// replaces its contents with the data in `anchor`.
     pub fn update(&self, anchor_id: &AnchorId, anchor: &Anchor) -> Result<(), RepositoryError> {
         let rel_path = anchor
             .file_path()
@@ -67,6 +80,7 @@ impl Repository {
         Ok(())
     }
 
+    /// Get an anchor by ID.
     pub fn get(&self, anchor_id: &AnchorId) -> Result<Anchor, RepositoryError> {
         let rel_anchor = self.storage.get(anchor_id)?;
         
@@ -101,6 +115,7 @@ pub enum RepositoryError {
     },
 }
 
+/// Interface for storage backends used by [`Repository`].
 pub(super) trait Storage {
     fn add(&self, anchor: &RelativeAnchor) -> Result<AnchorId, StorageError>;
     fn update(&self, anchor_id: &AnchorId, anchor: &RelativeAnchor) -> Result<(), StorageError>;
@@ -148,7 +163,7 @@ pub fn initialize(path: &Path, spor_dir: Option<&Path>) -> io::Result<()> {
 }
 
 /// Find the repository directory for the file `path` and return a
-/// `Repository` for it.
+/// [`Repository`] for it.
 pub fn open(path: &Path, spor_dir: Option<&Path>) -> io::Result<Repository> {
     let spor_dir = PathBuf::from(spor_dir.unwrap_or(&PathBuf::from(".spor")));
 
